@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go_linux/src/Genshin_Home_System/csvs"
 	"go_linux/src/Genshin_Home_System/game"
 	"time"
 )
@@ -9,6 +10,7 @@ import (
 func main() {
 	fmt.Println("数据测试---start")
 
+	csvs.CheckLoadCsv()
 	//加载配置功能
 	go game.GetManageBanWord().Run()
 	player := game.NewTestPlayer()
@@ -19,10 +21,10 @@ func main() {
 	for {
 		select {
 		case <-tickerIn.C:
-			player.RecvSetIcon(int(time.Now().Unix()))
+			player.RecvName("专业代练")
 
 		case <-tickerOut.C:
-			player.RecvName("试试")
+			player.RecvName("正常名字")
 
 		}
 	}

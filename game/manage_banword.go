@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"go_linux/src/Genshin_Home_System/csvs"
 	"regexp"
 	"time"
 )
@@ -44,6 +45,9 @@ func (mbw *ManageBanWord) IsBanWord(txt string) bool {
 }
 
 func (mbw *ManageBanWord) Run() {
+	//基础词库通过配置表的更新
+	mbw.BanWordBase = csvs.GetBanWordBase()
+
 	tickerIn := time.NewTicker(time.Second * 1)
 	//tickerOut:= time.NewTicker(time.Second * 5)
 	for {
