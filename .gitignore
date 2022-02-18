@@ -20,6 +20,8 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-/server/pkg/
+
 /json/DBconfig.json
 
+/server/pkg/mod/
+/server/pkg/
