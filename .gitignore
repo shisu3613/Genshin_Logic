@@ -23,5 +23,5 @@
 
 /json/DBconfig.json
 
-/server/pkg/mod/
-/server/pkg/
+#/server/pkg/mod/
+#/server/pkg/
