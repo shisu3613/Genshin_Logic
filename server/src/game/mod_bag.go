@@ -132,6 +132,10 @@ func (mb *ModBag) RemoveItemToBag(itemId int, num int64) error {
 }
 
 func (mb *ModBag) HasEnoughItem(itemId int, num int64) bool {
+	//注意事件模块设置
+	if itemId == 0 {
+		return true
+	}
 	_, ok := mb.BagInfo[itemId]
 	if !ok {
 		return false

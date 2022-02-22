@@ -14,7 +14,9 @@ type ConfigMapEvent struct {
 	Name           string `json:"Name"`
 	RefreshType    int    `json:"RefreshType"`
 	EventDrop      int    `json:"EventDrop"`
+	EventGain      int    `json:"EventGain"`
 	EventDropTimes int    `json:"EventDropTimes"`
+	EventGainTime  int    `json:"EventGainTime"`
 	MapId          int    `json:"MapId"`
 	CostItem       int    `json:"CostItem"`
 	CostNum        int64  `json:"CostNum"`

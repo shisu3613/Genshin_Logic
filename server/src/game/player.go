@@ -23,6 +23,7 @@ type Player struct {
 	ModCook       *ModCook       //初始化烹饪技能背包
 	ModHome       *ModHome       //家园模块
 	ModWish       *ModWish
+	ModMap        *ModMap //地图逻辑模块
 }
 
 func NewTestPlayer() *Player {
@@ -51,6 +52,8 @@ func NewTestPlayer() *Player {
 	player.ModHome = new(ModHome)
 	player.ModHome.HomeItemInfo = make(map[int]*HomeItem)
 
+	player.ModMap = new(ModMap)
+	player.ModMap.InitData()
 	//抽卡掉落模块
 	player.ModWish = new(ModWish)
 	player.ModWish.UPWishPool = new(WishPool)
@@ -358,6 +361,51 @@ func (pr *Player) HandleMap() {
 	fmt.Println("向着星辰与深渊,欢迎来到冒险家协会！")
 	fmt.Println("当前位置:", "蒙德城")
 	fmt.Println("地图模块还没写到......")
+	for {
+		fmt.Println("选择交互地图 0，返回 1.蒙德 2.璃月 1001.深入风龙废墟 2001.无妄引咎迷宫")
+		var action int
+		switch action {
+		case 0:
+			return
+		default:
+			pr.HandleMapIn(action)
+
+		}
+	}
+}
+
+// HandleMapIn 进入地图模块
+func (pr *Player) HandleMapIn(mapId int) {
+	config := csvs.ConfigMapMap[mapId]
+	if config == nil {
+		fmt.Println("地图无法识别")
+		return
+	}
+	//重新进入地图时候的刷新工作(秘境地图)
+	pr.ModMap.RefreshWhenCome(mapId)
+	for {
+		//检查当前进入地图的时候有没有遗留物
+		pr.ModMap.checkAnyDropOnMap(mapId, pr)
+		//生成当前可选事件列表
+		//pr.ModMap.GetEventList(config)
+		fmt.Println("请选择触发事件Id(0返回)")
+		var action int
+		fmt.Scan(&action)
+		switch action {
+		case 0:
+			return
+		default:
+			eventConfig := csvs.ConfigMapEventMap[action]
+			if eventConfig == nil {
+				fmt.Println("无法识别的事件")
+				break
+			}
+			if err := pr.ModMap.SetEventState(mapId, eventConfig.EventId, csvs.EventEnd, pr); err != nil {
+				fmt.Println(err)
+				break
+			}
+		}
+	}
 }
 
 func (pr *Player) HandleWishTest() {
