@@ -115,9 +115,9 @@ func (pr *Player) Run() {
 	fmt.Println("Test Tools by YudingWang Learn from B站刘丹冰Aceld,大海葵,一棵平衡树")
 	fmt.Println("模拟用户创建成功OK------开始测试")
 	fmt.Println("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓")
-	fmt.Println(pr.ModPlayer.Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图(未开放)")
+	//fmt.Println(pr.ModPlayer.Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
 	for {
-		//fmt.Println(pr.ModPlayer.Name, ",欢迎来到提瓦特大陆,请选择功能：1基础信息2背包3抽卡模块4地图(未开放)")
+		fmt.Println(pr.ModPlayer.Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
 		var modChoose int
 		_, err := fmt.Scan(&modChoose)
 		if err != nil {
@@ -136,7 +136,7 @@ func (pr *Player) Run() {
 		case 5:
 			pr.HandleMap()
 		}
-		fmt.Println(pr.ModPlayer.Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘）5.地图(未开放)")
+		//fmt.Println(pr.ModPlayer.Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘）5.地图")
 	}
 }
 
@@ -359,11 +359,11 @@ func (pr *Player) HandleBagRemoveItem() {
 // HandleMap 地图模块
 func (pr *Player) HandleMap() {
 	fmt.Println("向着星辰与深渊,欢迎来到冒险家协会！")
-	fmt.Println("当前位置:", "蒙德城")
-	fmt.Println("地图模块还没写到......")
+	//fmt.Println("当前位置:", "蒙德城")
 	for {
 		fmt.Println("选择交互地图 0，返回 1.蒙德 2.璃月 1001.深入风龙废墟 2001.无妄引咎迷宫")
 		var action int
+		fmt.Scan(&action)
 		switch action {
 		case 0:
 			return
@@ -383,11 +383,12 @@ func (pr *Player) HandleMapIn(mapId int) {
 	}
 	//重新进入地图时候的刷新工作(秘境地图)
 	pr.ModMap.RefreshWhenCome(mapId)
+Loop:
 	for {
 		//检查当前进入地图的时候有没有遗留物
 		pr.ModMap.checkAnyDropOnMap(mapId, pr)
 		//生成当前可选事件列表
-		//pr.ModMap.GetEventList(config)
+		pr.ModMap.GetEventList(mapId)
 		fmt.Println("请选择触发事件Id(0返回)")
 		var action int
 		fmt.Scan(&action)
@@ -402,7 +403,7 @@ func (pr *Player) HandleMapIn(mapId int) {
 			}
 			if err := pr.ModMap.SetEventState(mapId, eventConfig.EventId, csvs.EventEnd, pr); err != nil {
 				fmt.Println(err)
-				break
+				break Loop
 			}
 		}
 	}

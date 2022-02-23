@@ -65,6 +65,9 @@ func (mb *ModBag) AddItemToBag(itemId int, num int64) {
 }
 
 func (mb *ModBag) RemoveItem(itemId int, num int64, player *Player) error {
+	if itemId == 0 {
+		return nil
+	}
 	itemConfig := csvs.GetItemConfig(itemId)
 	if itemConfig == nil {
 		fmt.Println(itemId, "物品不存在")
@@ -118,7 +121,7 @@ func (mb *ModBag) RemoveItemToBag(itemId int, num int64) error {
 			nowNum = mb.BagInfo[itemId].ItemNum
 		}
 		//fmt.Sprintln(itemConfig.ItemName, "数量不足", "----当前数量：", nowNum)
-		return errors.New(fmt.Sprint(itemConfig.ItemName, "数量不足", "----当前数量：", nowNum))
+		return errors.New(fmt.Sprint(itemConfig.ItemName, "数量不足", "----当前数量：", nowNum, "请通过背包系统物品Id:", itemId, "增加物品"))
 	}
 
 	_, ok := mb.BagInfo[itemId]

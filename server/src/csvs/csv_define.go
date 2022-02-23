@@ -44,8 +44,8 @@ const (
 	// MapRefreshTwoDay 48小时刷新的植物
 	MapRefreshTwoDay = 1
 
-	// MapRefreshTwoThreeDay 三天刷新一次的矿物
-	MapRefreshTwoThreeDay = 2
+	// MapRefreshThreeDay  三天刷新一次的矿物
+	MapRefreshThreeDay = 2
 
 	// MapRefreshWeek  一周刷新一次的周本
 	MapRefreshWeek = 3
@@ -58,6 +58,10 @@ const (
 
 	RefreshSystem = 1
 	RefreshPlayer = 2
+
+	//事件类型
+	EventTypeNormal = 1
+	EventTypeReward = 2
 )
 
 //物品掉落常数
