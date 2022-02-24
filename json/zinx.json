@@ -1,5 +1,5 @@
 {
-  "Name": "zinx v0.10 demoServerApp",
+  "Name": "原神测试工具服务器【V0.1】",
   "Version": "V0.10",
   "Host": "0.0.0.0",
   "TcpPort": 8999,

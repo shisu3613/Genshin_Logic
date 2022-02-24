@@ -82,7 +82,6 @@ func DoConnectionBegin(conn ziface.IConnection) {
 	fmt.Println("Set conn Name, Home....")
 	conn.SetProperty("Name", "YudingWang")
 	conn.SetProperty("Home", "top.yudingwang")
-
 }
 
 // DoConnectionLost 断开链接之前需要执行的Hook
@@ -101,7 +100,7 @@ func DoConnectionLost(conn ziface.IConnection) {
 
 func main() {
 	//1.创建server的句柄
-	s := znet.NewServer("[zinx V0.1]")
+	s := znet.NewServer("原神测试工具服务器【V0.1】")
 
 	//2.给当前zinx框架添加多个自定义的router
 	s.AddRouter(0, &PingRouter{})

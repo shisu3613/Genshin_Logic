@@ -58,11 +58,11 @@ func (s *Server) Start() {
 	//开启消息队列和worker工作池
 	s.MsgHandler.StartWorkerPool()
 
-	fmt.Printf("[Zinx] Server Name : %s,listener at IP : %s, Port:%d is starting\n",
+	fmt.Printf("Server Name : %s,listener at IP : %s, Port:%d is starting\n",
 		utils.GlobalObject.Name,
 		utils.GlobalObject.Host,
 		utils.GlobalObject.TcpPort)
-	fmt.Printf("[Zinx] Version : %s,MaxConn : %d, MaxPackageSize:%d is starting\n",
+	fmt.Printf("Version : %s,MaxConn : %d, MaxPackageSize:%d is starting\n",
 		utils.GlobalObject.Version,
 		utils.GlobalObject.MaxConn,
 		utils.GlobalObject.MaxPackageSize)

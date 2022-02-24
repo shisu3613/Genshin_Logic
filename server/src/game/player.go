@@ -1,8 +1,13 @@
 package game
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"server/csvs"
+	"server/msgJson"
+	"server/zinx/ziface"
+	"sync"
 )
 
 const (
@@ -11,8 +16,14 @@ const (
 	TaskStateFinish = 2
 )
 
+var PIDGen int = 1    //用于生成玩家ID的计数器
+var IDLock sync.Mutex //保护PIDGen的互斥机制
+
 type Player struct {
-	ModPlayer     *ModPlayer //modplayer包含玩家的基本面板信息
+	//客户端连接功能当前
+	Conn ziface.IConnection //当前玩家连接
+
+	ModPlayer     *ModPlayer //modplayer包含玩家的基本面板信息，UID即是玩家当前ID
 	ModIcon       *ModIcon   //解耦：包含头像信息，链接数据库或者客户端本地缓存中的id和图片
 	ModCard       *ModCard
 	ModUniqueTask *ModUniqueTask //任务模块
@@ -24,6 +35,60 @@ type Player struct {
 	ModHome       *ModHome       //家园模块
 	ModWish       *ModWish
 	ModMap        *ModMap //地图逻辑模块
+}
+
+func NewClientPlayer(conn ziface.IConnection) *Player {
+	player := new(Player)
+	//绑定客户端连接
+	player.Conn = conn
+
+	//生成Player Uid
+	IDLock.Lock()
+	ID := PIDGen
+	PIDGen++
+	IDLock.Unlock()
+
+	player.ModPlayer = new(ModPlayer)
+	//playerMod里面绑定了UID
+	player.ModPlayer.UserId = ID
+
+	player.ModIcon = new(ModIcon)
+	player.ModIcon.IconInfo = make(map[int]*Icon)
+	player.ModCard = new(ModCard)
+	player.ModCard.CardInfo = make(map[int]*Card)
+	player.ModUniqueTask = new(ModUniqueTask)
+	player.ModUniqueTask.MyTaskInfo = make(map[int]*TaskInfo)
+	//player.ModUniqueTask.Locker = new(sync.RWMutex)
+	player.ModRole = new(ModRole)
+	player.ModRole.RoleInfo = make(map[int]*RoleInfo)
+	player.ModBag = new(ModBag)
+	player.ModBag.BagInfo = make(map[int]*ItemInfo)
+	player.ModWeapon = new(ModWeapon)
+	player.ModWeapon.WeaponInfo = make(map[int]*Weapon)
+
+	player.ModRelic = new(ModRelic)
+	player.ModRelic.RelicInfo = make(map[int]*Relic)
+
+	player.ModCook = new(ModCook)
+	player.ModCook.CookInfo = make(map[int]*Cook)
+
+	player.ModHome = new(ModHome)
+	player.ModHome.HomeItemInfo = make(map[int]*HomeItem)
+
+	player.ModMap = new(ModMap)
+	player.ModMap.InitData()
+	//抽卡掉落模块
+	player.ModWish = new(ModWish)
+	player.ModWish.UPWishPool = new(WishPool)
+	player.ModWish.NormalWishPool = new(WishPool)
+
+	//****************************************
+	player.ModPlayer.PlayerLevel = 1
+	player.ModPlayer.Name = "旅行者"
+	player.ModPlayer.WorldLevel = 1
+	player.ModPlayer.WorldLevelNow = 1
+	//****************************************
+	return player
 }
 
 func NewTestPlayer() *Player {
@@ -66,6 +131,23 @@ func NewTestPlayer() *Player {
 	player.ModPlayer.WorldLevelNow = 1
 	//****************************************
 	return player
+}
+
+// SyncPid 告知客户端pID,同步已经生成的玩家ID给客户端
+func (pr *Player) SyncPid() {
+	log.Println("SyncPid")
+
+	pidMsg := msgJson.SyncPID{PID: pr.ModPlayer.UserId}
+	data, err := json.Marshal(pidMsg) //
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	//调用zinx框架的SendMsg发包
+	if err := pr.Conn.SendMsg(1, data); err != nil {
+		fmt.Println("Player SendMsg error !")
+		return
+	}
 }
 
 // RecvSetIcon 对外接口
