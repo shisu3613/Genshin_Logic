@@ -29,7 +29,7 @@ type ModWish struct {
 }
 
 // DoPoolTest 抽卡模拟
-func (wish *ModWish) DoPoolTest(times int) {
+func (wish *ModWish) DoPoolTest(times int) (res string) {
 	result := make(map[int]int)
 	for i := 0; i < times; i++ {
 		dropGroup := csvs.ConfigDropGroupMap[1000] //drop id 为1000
@@ -111,6 +111,7 @@ func (wish *ModWish) DoPoolTest(times int) {
 	FiveStar, FourStarRole, FourStarWeapon, ThreeStar := 0, 0, 0, 0
 	for k, v := range result {
 		fmt.Printf("抽中%s次数：%d\n", csvs.GetItemName(k), v)
+		res += fmt.Sprintf("抽中%s次数：%d\n", csvs.GetItemName(k), v)
 		if csvs.GetItemConfig(k).SortType == csvs.ItemTypeRole {
 			if csvs.GetRoleConfig(k).Star == 4 {
 				FourStarRole += v
@@ -127,6 +128,9 @@ func (wish *ModWish) DoPoolTest(times int) {
 	}
 	fmt.Printf("本次您一共进行了%d次祈愿，共获得五星角色%d位，占总数的%.4f%%,四星角色%d位，四星武器%d把，四星综合概率为%.4f%%\n", times, FiveStar, 100*float32(FiveStar)/float32(times), FourStarRole,
 		FourStarWeapon, 100*float32(FourStarRole+FourStarWeapon)/float32(times))
+	res += fmt.Sprintf("本次您一共进行了%d次祈愿，共获得五星角色%d位，占总数的%.4f%%,四星角色%d位，四星武器%d把，四星综合概率为%.4f%%\n", times, FiveStar, 100*float32(FiveStar)/float32(times), FourStarRole,
+		FourStarWeapon, 100*float32(FourStarRole+FourStarWeapon)/float32(times))
+	return res
 }
 
 //DoPool UP池子抽卡

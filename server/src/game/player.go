@@ -150,6 +150,18 @@ func (pr *Player) SyncPid() {
 	}
 }
 
+func (pr *Player) SendStringMsg(msgId uint32, msg string) {
+	data, err := json.Marshal(msg)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if err := pr.Conn.SendMsg(msgId, data); err != nil {
+		fmt.Println("Player SendMsg error !")
+		return
+	}
+}
+
 // RecvSetIcon 对外接口
 func (pr *Player) RecvSetIcon(iconId int) {
 	pr.ModPlayer.SetIcon(iconId, pr)
@@ -227,7 +239,7 @@ func (pr *Player) HandleBase() {
 	for {
 		fmt.Println("当前处于基础信息界面,请选择操作：0返回1查询信息2设置名字3设置签名4头像5名片6设置生日")
 		var action int
-		fmt.Scan(&action)
+		_, _ = fmt.Scan(&action)
 		switch action {
 		case 0:
 			return
@@ -245,6 +257,37 @@ func (pr *Player) HandleBase() {
 			pr.HandleBagSetBirth()
 		}
 	}
+}
+
+// HandleBaseGetInfoServer 用于服务器生成具体信息的列表
+func (pr *Player) HandleBaseGetInfoServer() (res string) {
+	res += fmt.Sprintln("名字:", pr.ModPlayer.Name)
+	res += fmt.Sprintln("等级:", pr.ModPlayer.PlayerLevel)
+	res += fmt.Sprintln("大世界等级:", pr.ModPlayer.WorldLevelNow)
+	if pr.ModPlayer.Sign == "" {
+		res += fmt.Sprintln("签名:", "未设置")
+	} else {
+		res += fmt.Sprintln("签名:", pr.ModPlayer.Sign)
+	}
+
+	if pr.ModPlayer.Icon == 0 {
+		res += fmt.Sprintln("头像:", "未设置")
+	} else {
+		res += fmt.Sprintln("头像:", csvs.GetItemConfig(pr.ModPlayer.Icon), pr.ModPlayer.Icon)
+	}
+
+	if pr.ModPlayer.Card == 0 {
+		res += fmt.Sprintln("名片:", "未设置")
+	} else {
+		res += fmt.Sprintln("名片:", csvs.GetItemConfig(pr.ModPlayer.Card), pr.ModPlayer.Card)
+	}
+
+	if pr.ModPlayer.Birth == 0 {
+		res += fmt.Sprintln("生日:", "未设置")
+	} else {
+		res += fmt.Sprintln("生日:", pr.ModPlayer.Birth/100, "月", pr.ModPlayer.Birth%100, "日")
+	}
+	return res
 }
 
 func (pr *Player) HandleBaseGetInfo() {
