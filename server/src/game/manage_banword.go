@@ -12,12 +12,14 @@ var manageBanWord *ManageBanWord
 type ManageBanWord struct {
 	BanWordBase  []string //配置生成
 	BanWordExtra []string //更新
+	MsgChannel   chan int //关闭违禁词部分的channel
 }
 
 func GetManageBanWord() *ManageBanWord {
 	if manageBanWord == nil {
 		manageBanWord = new(ManageBanWord)
 		manageBanWord.BanWordExtra = []string{"外挂", "工具", "原神"}
+		manageBanWord.MsgChannel = make(chan int)
 	}
 	return manageBanWord
 }
@@ -56,6 +58,18 @@ func (self *ManageBanWord) Run() {
 			} else {
 				// fmt.Println("待机")
 			}
+		case _, ok := <-self.MsgChannel:
+			if !ok {
+				//即关闭当前违禁词库
+				fmt.Println("关闭违禁词库")
+
+			}
+
 		}
 	}
+}
+
+// Close 关闭违禁词库的channel
+func (self *ManageBanWord) Close() {
+	close(self.MsgChannel)
 }

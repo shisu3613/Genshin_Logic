@@ -83,6 +83,8 @@ func main() {
 	s := znet.NewServer("原神测试工具服务器【V0.1】")
 	rand.Seed(time.Now().UnixNano())
 	csvs.CheckLoadCsv()
+
+	//启动违禁词库协程
 	go game.GetManageBanWord().Run()
 	//2.给当前zinx框架添加多个自定义的router
 	s.AddRouter(202, &PlayerRouter{})
@@ -93,6 +95,6 @@ func main() {
 	s.SetOnConnStart(DoConnectionBegin)
 	s.SetOnConnStop(DoConnectionLost)
 
-	//3.启动server
+	//3.启动server协程
 	s.Serve()
 }
