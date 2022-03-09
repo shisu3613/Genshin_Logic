@@ -95,6 +95,18 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 			return
 		}
 		msgJson.MsgMgrObj.SendMsg(msg.Id+200, modChoose, client.conn)
+	case 51: //增加物品的模块
+		type pair struct {
+			ItemId  int
+			ItemNum int
+		}
+		scanRes := pair{}
+		fmt.Println("物品ID")
+		fmt.Scan(&scanRes.ItemId)
+		fmt.Println("物品数量")
+		fmt.Scan(&scanRes.ItemNum)
+		msgJson.MsgMgrObj.SendMsg(msg.Id+200, scanRes, client.conn)
+
 	default: //输入数字的情况
 		client.PrintMsg(msg)
 		var modChoose int

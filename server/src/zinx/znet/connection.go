@@ -30,6 +30,8 @@ type Connection struct {
 	//告知退出的channel:由reader告知writer退出
 	ExitChan chan bool
 
+	//WriteExitChan chan bool
+
 	//无缓冲的管道，用于读写groutine之间的消息通讯
 	msgChan chan []byte
 
@@ -56,8 +58,9 @@ func NewConnection(server ziface.Iserver, conn *net.TCPConn, connID uint32, msgH
 		IsClosed:   false,
 		MsgHandler: msgHandler,
 		ExitChan:   make(chan bool, 1),
-		msgChan:    make(chan []byte), //无缓冲
-		property:   make(map[string]interface{}),
+		//WriteExitChan: make(chan bool, 1),
+		msgChan:  make(chan []byte), //无缓冲
+		property: make(map[string]interface{}),
 	}
 
 	//将Conn加入到connManager中,
@@ -93,14 +96,21 @@ func (c *Connection) StartRead() {
 	defer fmt.Println("[Reader is exit!],c.connID:", c.ConnID, "remote addr is", c.RemoteAddr().String())
 	defer c.Stop()
 
+	//创建一个拆包解包的对象
+	dp := NewDataPack()
+
 	//读取客户端的数据到buff中
 	for {
-
-		//创建一个拆包解包的对象
-		dp := NewDataPack()
+		//select {
+		//case <-c.ExitChan:
+		//	//代表reader已经退出
+		//	//c.WriteExitChan <- true
+		//	return
+		//default:
 
 		//读取msgHead 8bytes
 		headData := make([]byte, dp.GetHeadLen())
+		//fmt.Println("readFull Test")
 		if _, err := io.ReadFull(c.GetTCPConnection(), headData); err != nil {
 			fmt.Println("Read massage Head error:", err)
 			break
@@ -110,7 +120,7 @@ func (c *Connection) StartRead() {
 		msg, err := dp.Unpack(headData)
 		if err != nil {
 			fmt.Println("msg struct err", err)
-			continue
+			return
 		}
 
 		//根据dataLen再次读取data
@@ -123,7 +133,7 @@ func (c *Connection) StartRead() {
 			_, err := io.ReadFull(c.GetTCPConnection(), data)
 			if err != nil {
 				fmt.Println("跟据dataLen的长度再次从IO流中读取失败:", err)
-				break
+				return
 			}
 		}
 		msg.SetData(data)
@@ -161,6 +171,7 @@ func (c *Connection) StartRead() {
 			go c.MsgHandler.DoMsgHandler(req)
 		}
 	}
+	//}
 }
 
 // Start 启动链接
@@ -178,31 +189,38 @@ func (c *Connection) Start() {
 
 // Stop 停止链接 结束当前链接的工作
 func (c *Connection) Stop() {
-	fmt.Println("Conn Stop() ... ConnID -", c.ConnID)
-
 	if c.IsClosed {
 		return
 	}
+	fmt.Println("Conn Stop() ... ConnID -", c.ConnID)
+
 	c.IsClosed = true
 
 	//调用开发者注册的要在销毁链接之前需要执行的业务部分
 	c.TcpServer.CallOnConnStop(c)
 
+	//告知writer关闭
+	c.ExitChan <- true
+
+	//time.Sleep(10 * time.Second)
 	//关闭链接，关闭资源
+	//fmt.Println("start to close")
+
+	//将链接从连接管理器中删除
+	//c.TcpServer.GetConnMgr().Remove(c) //删除conn从ConnManager中
+	//fmt.Println("start to close2")
+
 	err := c.Conn.Close()
 	if err != nil {
 		fmt.Println("close connection failed", err)
 		return
 	}
-	//告知writer关闭
-	c.ExitChan <- true
 
-	//将链接从连接管理器中删除
-	c.TcpServer.GetConnMgr().Remove(c) //删除conn从ConnManager中
-
+	//fmt.Println("all the finish2")
 	//回收资源
 	close(c.ExitChan)
 	close(c.msgChan)
+	//fmt.Println("all the finish")
 }
 
 // GetTCPConnection 获取绑定的socket

@@ -10,6 +10,6 @@ type IConnManager interface {
 	Get(connID uint32) (IConnection, error)
 	// Len 总链接个数获取
 	Len() int
-	// Clear 链接清理（GC机制）
+	// ClearConn Clear 链接清理（GC机制）
 	ClearConn()
 }

@@ -32,16 +32,28 @@ func (connMgr *ConnManager) Add(conn ziface.IConnection) {
 	fmt.Println("connection ID =", conn.GetConnID(), " add to connManager successfully :conn num =", connMgr.Len())
 }
 
-// Remove 删除链接
+//// Remove 删除链接
+//func (connMgr *ConnManager) Remove(conn ziface.IConnection) {
+//	//保护共享资源
+//	//fmt.Println("any problem here?")
+//	connMgr.connLock.Lock()
+//	defer connMgr.connLock.Unlock()
+//
+//	//删除链接信息
+//	//fmt.Println("any problem here?")
+//	delete(connMgr.connections, conn.GetConnID())
+//	fmt.Println("connection ID =", conn.GetConnID(), " remove from connManager successfully :conn num =", connMgr.Len())
+//
+//}
+
+//Remove 删除连接
 func (connMgr *ConnManager) Remove(conn ziface.IConnection) {
-	//保护共享资源
+
 	connMgr.connLock.Lock()
-	defer connMgr.connLock.Unlock()
-
-	//删除链接信息
+	//删除连接信息
 	delete(connMgr.connections, conn.GetConnID())
-	fmt.Println("connection ID =", conn.GetConnID(), " remove from connManager successfully :conn num =", connMgr.Len())
-
+	connMgr.connLock.Unlock()
+	fmt.Println("connection Remove ConnID=", conn.GetConnID(), " successfully: conn num = ", connMgr.Len())
 }
 
 // Get 根据链接ID查找链接
@@ -75,5 +87,5 @@ func (connMgr *ConnManager) ClearConn() {
 		conn.Stop()
 		delete(connMgr.connections, connID)
 	}
-	fmt.Println("Clear All Connections succ!,conn num =", connMgr.Len())
+	fmt.Println("Clear All Connections succ! conn num =", connMgr.Len())
 }

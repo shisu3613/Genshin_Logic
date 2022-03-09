@@ -38,9 +38,8 @@ func (pr *PlayerRouter) Handler(request ziface.IRequest) {
 	case 1:
 		//player.HandleBaseRemote(request)
 		player.SendStringMsg(3, "当前处于基础信息界面,请选择操作：0返回1查询信息2设置名字3设置签名4头像5名片6设置生日")
-
 	case 2:
-		player.HandleBag()
+		player.SendStringMsg(5, "当前处于背包界面,请选择操作：0返回1增加物品2扣除物品3使用物品")
 	case 3:
 		player.SendStringMsg(33, "请输出抽卡次数:")
 	case 4:
@@ -94,6 +93,8 @@ func main() {
 	s.AddRouter(202, &PlayerRouter{})
 	s.AddRouter(203, &api.HandlerBase{})
 	s.AddRouter(204, &api.HandlerBaseName{})
+	s.AddRouter(205, &api.HandlerBag{})
+	s.AddRouter(251, &api.HandlerBagAddItem{})
 	s.AddRouter(233, &api.HandlerWishesTest{})
 	//注册Hook函数
 	s.SetOnConnStart(DoConnectionBegin)
@@ -104,10 +105,7 @@ func main() {
 
 	//增加监听信号结束功能
 	//集成在serve里面
-	//select {
-	//case <-s.GetSignal():
-	//
-	//}
+
 	//关闭违反禁止词库
 	game.GetManageBanWord().Close()
 	//time.Sleep(time.Second * 3)
