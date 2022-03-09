@@ -9,6 +9,7 @@ import (
 	"server/game"
 	"server/zinx/ziface"
 	"server/zinx/znet"
+	"sync"
 	"time"
 )
 
@@ -84,9 +85,12 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	csvs.CheckLoadCsv()
 
+	wg := sync.WaitGroup{}
 	//启动违禁词库协程
-	go game.GetManageBanWord().Run()
-	//2.给当前zinx框架添加多个自定义的router
+	wg.Add(1)
+	go game.GetManageBanWord().Run(&wg)
+
+	//给当前zinx框架添加多个自定义的router
 	s.AddRouter(202, &PlayerRouter{})
 	s.AddRouter(203, &api.HandlerBase{})
 	s.AddRouter(204, &api.HandlerBaseName{})
@@ -107,4 +111,5 @@ func main() {
 	//关闭违反禁止词库
 	game.GetManageBanWord().Close()
 	//time.Sleep(time.Second * 3)
+	wg.Wait()
 }

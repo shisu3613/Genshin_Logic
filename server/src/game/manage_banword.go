@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"server/csvs"
+	"sync"
 	"time"
 )
 
@@ -46,7 +47,7 @@ func (self *ManageBanWord) IsBanWord(txt string) bool {
 	return false
 }
 
-func (self *ManageBanWord) Run() {
+func (self *ManageBanWord) Run(group *sync.WaitGroup) {
 	self.BanWordBase = csvs.GetBanWordBase()
 	//基础词库的更新
 	ticker := time.NewTicker(time.Second * 1)
@@ -62,6 +63,7 @@ func (self *ManageBanWord) Run() {
 			if !ok {
 				//即关闭当前违禁词库
 				fmt.Println("关闭违禁词库")
+				group.Done()
 				goto CLOSE
 			}
 
@@ -73,5 +75,5 @@ CLOSE:
 // Close 关闭违禁词库的channel
 func (self *ManageBanWord) Close() {
 	close(self.MsgChannel)
-	time.Sleep(time.Millisecond * 100)
+	//time.Sleep(time.Millisecond * 100)
 }
