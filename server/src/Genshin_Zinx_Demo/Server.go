@@ -97,4 +97,14 @@ func main() {
 
 	//3.启动server协程
 	s.Serve()
+
+	//增加监听信号结束功能
+	//集成在serve里面
+	//select {
+	//case <-s.GetSignal():
+	//
+	//}
+	//关闭违反禁止词库
+	game.GetManageBanWord().Close()
+	//time.Sleep(time.Second * 3)
 }

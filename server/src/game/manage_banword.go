@@ -62,14 +62,16 @@ func (self *ManageBanWord) Run() {
 			if !ok {
 				//即关闭当前违禁词库
 				fmt.Println("关闭违禁词库")
-
+				goto CLOSE
 			}
 
 		}
 	}
+CLOSE:
 }
 
 // Close 关闭违禁词库的channel
 func (self *ManageBanWord) Close() {
 	close(self.MsgChannel)
+	time.Sleep(time.Millisecond * 100)
 }

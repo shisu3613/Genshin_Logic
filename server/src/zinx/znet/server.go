@@ -3,8 +3,11 @@ package znet
 import (
 	"fmt"
 	"net"
+	"os"
+	"os/signal"
 	"server/zinx/utils"
 	"server/zinx/ziface"
+	"syscall"
 	"time"
 )
 
@@ -41,6 +44,9 @@ type Server struct {
 
 	//该Server销毁链接之前自动调用Hook函数 -- OnConnStop
 	OnConnStop func(conn ziface.IConnection)
+
+	//增加监听信号功能，syscall
+	SignalChan chan os.Signal
 }
 
 // CallBackToClient 定义当前客户端所绑定的handlerAPI，目前是写死的，一抹后话应该由用户自定义
@@ -107,6 +113,7 @@ func (s *Server) Start() {
 
 		}
 	}()
+
 }
 
 // Stop 停止服务器
@@ -122,7 +129,13 @@ func (s *Server) Serve() {
 	s.Start()
 
 	//阻塞
-	select {}
+	signal.Notify(s.SignalChan, syscall.SIGINT)
+	select {
+	case <-s.SignalChan:
+		fmt.Println("[!!!!]Close the server after 3 seconds")
+		time.Sleep(time.Second * 3)
+		s.Stop()
+	}
 }
 
 func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
@@ -132,6 +145,10 @@ func (s *Server) AddRouter(msgID uint32, router ziface.IRouter) {
 
 func (s *Server) GetConnMgr() ziface.IConnManager {
 	return s.ConnMgr
+}
+
+func (s *Server) GetSignal() chan os.Signal {
+	return s.SignalChan
 }
 
 // NewServer 初始化Serve模块的方法
@@ -144,6 +161,7 @@ func NewServer(name string) ziface.Iserver {
 		//Router:    nil,
 		MsgHandler: NewMsgHandler(),
 		ConnMgr:    NewConnManager(),
+		SignalChan: make(chan os.Signal),
 	}
 
 	return s

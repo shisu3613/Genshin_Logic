@@ -1,5 +1,7 @@
 package ziface
 
+import "os"
+
 //定义一个服务器接口
 
 type Iserver interface {
@@ -27,4 +29,10 @@ type Iserver interface {
 
 	// CallOnConnStop 调用OnConnstop钩子函数的方法
 	CallOnConnStop(conn IConnection)
+
+	// GetSignal 监听signal信号
+	GetSignal() chan os.Signal
+
+	//// SignalHandler
+	//SignalHandler()
 }
