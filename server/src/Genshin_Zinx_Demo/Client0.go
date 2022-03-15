@@ -153,6 +153,7 @@ func (client *TcpClient) PrintMsg(msg *znet.Message) {
 //}
 
 func main() {
-	Client := NewTcpClient("127.0.0.1", 8999)
+	Client := NewTcpClient("116.62.193.144", 8999)
+	//Client := NewTcpClient("116.62.193.144", 8999)
 	Client.start()
 }
