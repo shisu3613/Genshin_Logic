@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	db := GORM.NewDBConnection()
+	db := DB.NewDBConnection()
 	defer func(db *gorm.DB) {
 		err := db.Close()
 		if err != nil {

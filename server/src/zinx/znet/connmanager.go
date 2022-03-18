@@ -79,13 +79,13 @@ func (connMgr *ConnManager) Len() int {
 // ClearConn Clear 链接清理（GC机制）
 func (connMgr *ConnManager) ClearConn() {
 	//保护共享资源
-	connMgr.connLock.Lock()
-	defer connMgr.connLock.Unlock()
+	//connMgr.connLock.Lock()
+	//defer connMgr.connLock.Unlock()
 
 	//删除conn并停止conn的工作
-	for connID, conn := range connMgr.connections {
+	for _, conn := range connMgr.connections {
 		conn.Stop()
-		delete(connMgr.connections, connID)
+		//delete(connMgr.connections, connID)
 	}
 	fmt.Println("Clear All Connections succ! conn num =", connMgr.Len())
 }

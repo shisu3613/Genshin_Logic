@@ -1,4 +1,4 @@
-package GORM
+package DB
 
 import (
 	"encoding/json"
@@ -34,4 +34,11 @@ func NewDBConnection() *gorm.DB {
 	}
 	db.SingularTable(true)
 	return db
+}
+
+var GormDB *gorm.DB
+
+func init() {
+	GormDB = NewDBConnection()
+
 }

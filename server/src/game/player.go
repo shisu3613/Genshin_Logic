@@ -42,15 +42,15 @@ func NewClientPlayer(conn ziface.IConnection) *Player {
 	//绑定客户端连接
 	player.Conn = conn
 
-	//生成Player Uid
-	IDLock.Lock()
-	ID := PIDGen
-	PIDGen++
-	IDLock.Unlock()
+	////生成Player Uid
+	//IDLock.Lock()
+	//ID := PIDGen
+	//PIDGen++
+	//IDLock.Unlock()
 
 	player.ModPlayer = new(ModPlayer)
 	//playerMod里面绑定了UID
-	player.ModPlayer.UserId = ID
+	//player.ModPlayer.UserId = ID
 
 	player.ModIcon = new(ModIcon)
 	player.ModIcon.IconInfo = make(map[int]*Icon)

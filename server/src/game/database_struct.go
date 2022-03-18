@@ -1,6 +1,9 @@
 package game
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+	DB "server/DB/GORM"
+)
 
 type DBPlayer struct {
 	gorm.Model
@@ -16,9 +19,9 @@ type DBPlayer struct {
 	WorldLevelCool int64  //操作大世界等级的冷却时间
 	Birth          int    //生日
 
-	//ShowCard     []int       //展示名片
-	//ShowTeam     []*ShowRole //展示阵容
-	HideShowTeam int //隐藏开关,是否包含角色属性
+	ShowCard     []*Cards    `gorm:"OwnerId:OwnerId;references:UserId"` //展示名片
+	ShowTeam     []*ShowRole `gorm:"OwnerId:OwnerId;references:UserId"` //展示阵容
+	HideShowTeam int         //隐藏开关,是否包含角色属性
 
 	//不可见字段
 	Prohibit int //封禁状态
@@ -27,4 +30,8 @@ type DBPlayer struct {
 
 func (DBPlayer) TableName() string {
 	return "BasicProfiles"
+}
+
+func init() {
+	DB.GormDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(&DBPlayer{}, &Cards{}, &ShowRole{})
 }

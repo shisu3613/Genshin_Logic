@@ -84,7 +84,7 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 		sycnID := new(msgJson.SyncPID)
 		_ = json.Unmarshal(msg.Data, sycnID)
 		client.PID = sycnID.PID
-		fmt.Println("模拟用户创建成功OK------开始测试")
+		fmt.Println("用户连接成功OK------当前UID为：", client.PID)
 		fmt.Println("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓")
 	case 4: //需要输入string的情况
 		client.PrintMsg(msg)

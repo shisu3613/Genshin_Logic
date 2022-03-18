@@ -2,23 +2,28 @@ package game
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
 	"server/csvs"
 	"time"
 )
 
 type ShowRole struct {
+	gorm.Model
 	RoleId    int
 	RoleLevel int
+	OwnerId   int
 }
 type ModPlayer struct {
 	DBPlayer
 
-	ShowCard *Cards      //展示名片
-	ShowTeam []*ShowRole //展示阵容
+	//ShowCard *Cards      //展示名片
+	//ShowTeam []*ShowRole //展示阵容
 }
 
 type Cards struct {
-	Cards []int
+	gorm.Model
+	Card    int
+	OwnerId int
 }
 
 func (mp *ModPlayer) SetIcon(iconId int, player *Player) {
@@ -194,8 +199,10 @@ func (mp *ModPlayer) SetShowCard(showCard []int, player *Player) {
 		newList = append(newList, cardId) //切片来保证数据
 		cardExist[cardId] = 1
 	}
-	mp.ShowCard.Cards = newList
-	fmt.Println(mp.ShowCard.Cards)
+	for i, x := range newList {
+		mp.ShowCard[i].Card = x
+	}
+	fmt.Println(mp.ShowCard)
 }
 
 func (mp *ModPlayer) SetShowTeam(showRole []int, player *Player) {

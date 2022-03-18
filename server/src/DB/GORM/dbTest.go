@@ -1,4 +1,4 @@
-package GORM
+package DB
 
 import (
 	"fmt"
