@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
-	"server/DB"
+	"server/DB/GORM"
 	"server/csvs"
 )
 
 func main() {
-	db := DB.NewDBConnection()
+	db := GORM.NewDBConnection()
 	defer func(db *gorm.DB) {
 		err := db.Close()
 		if err != nil {

@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"server/csvs"
 	"server/game"
+	"sync"
 	"time"
 )
 
@@ -26,12 +27,18 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	//time.Sleep(time.Millisecond * 100)
 	csvs.CheckLoadCsv()
-	go game.GetManageBanWord().Run()
+	wg := sync.WaitGroup{}
+	//启动违禁词库协程
+	wg.Add(1)
+	go game.GetManageBanWord().Run(&wg)
 
 	//fmt.Printf("数据测试----start\n")
 	playerTest := game.NewTestPlayer()
 	go playerTest.Run()
+
 	select {}
+	game.GetManageBanWord().Close()
+	wg.Wait()
 
 	//ticker := time.NewTicker(time.Second * 10)
 	//for {
