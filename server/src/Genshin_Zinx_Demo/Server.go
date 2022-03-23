@@ -29,6 +29,7 @@ func (lc *LoadOrCreatRouter) Handler(request ziface.IRequest) {
 	case -1:
 		player := game.NewClientPlayer(conn)
 
+		//在数据库中生成对应的记录，根据记录生成对应的user_id
 		DB.GormDB.Create(&player.ModPlayer.DBPlayer)
 		//fmt.Println(player.ModPlayer.DBPlayer.ID)
 		//告知客户端pID,同步已经生成的玩家ID给客户端
