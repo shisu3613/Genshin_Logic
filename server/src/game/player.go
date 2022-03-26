@@ -27,8 +27,8 @@ type Player struct {
 	ModIcon       *ModIcon   //解耦：包含头像信息，链接数据库或者客户端本地缓存中的id和图片
 	ModCard       *ModCard
 	ModUniqueTask *ModUniqueTask //任务模块
-	ModRole       *ModRole       //人物模块，核心模块
-	ModBag        *ModBag        //背包模块
+	ModRole       *ModRole       //人物模块
+	ModBag        *ModBag        //背包模块，核心模块
 	ModWeapon     *ModWeapon     //武器背包模块
 	ModRelic      *ModRelic      //初始化圣遗物模块
 	ModCook       *ModCook       //初始化烹饪技能背包
@@ -87,6 +87,7 @@ func NewClientPlayer(conn ziface.IConnection) *Player {
 	player.ModPlayer.Name = "旅行者"
 	player.ModPlayer.WorldLevel = 1
 	player.ModPlayer.WorldLevelNow = 1
+	player.ModPlayer.player = player
 	//****************************************
 	return player
 }
@@ -129,6 +130,8 @@ func NewTestPlayer() *Player {
 	player.ModPlayer.Name = "旅行者"
 	player.ModPlayer.WorldLevel = 1
 	player.ModPlayer.WorldLevelNow = 1
+	player.ModPlayer.player = player
+
 	//****************************************
 	return player
 }
@@ -164,43 +167,43 @@ func (pr *Player) SendStringMsg(msgId uint32, msg string) {
 
 // RecvSetIcon 对外接口
 func (pr *Player) RecvSetIcon(iconId int) {
-	pr.ModPlayer.SetIcon(iconId, pr)
+	pr.ModPlayer.SetIcon(iconId)
 }
 
 func (pr *Player) RecvSetCard(cardId int) {
-	pr.ModPlayer.SetCard(cardId, pr)
+	pr.ModPlayer.SetCard(cardId)
 }
 
 func (pr *Player) RecvSetName(name string) {
-	pr.ModPlayer.SetName(name, pr)
+	pr.ModPlayer.SetName(name)
 }
 
 func (pr *Player) RecvSetSign(sign string) {
-	pr.ModPlayer.SetSign(sign, pr)
+	pr.ModPlayer.SetSign(sign)
 }
 
 func (pr *Player) ReduceWorldLevel() {
-	pr.ModPlayer.ReduceWorldLevel(pr)
+	pr.ModPlayer.ReduceWorldLevel()
 }
 
 func (pr *Player) ReturnWorldLevel() {
-	pr.ModPlayer.ReturnWorldLevel(pr)
+	pr.ModPlayer.ReturnWorldLevel()
 }
 
 func (pr *Player) SetBirth(birth int) {
-	pr.ModPlayer.SetBirth(birth, pr)
+	pr.ModPlayer.SetBirth(birth)
 }
 
 func (pr *Player) SetShowCard(showCard []int) {
-	pr.ModPlayer.SetShowCard(showCard, pr)
+	pr.ModPlayer.SetShowCard(showCard)
 }
 
 func (pr *Player) SetShowTeam(showRole []int) {
-	pr.ModPlayer.SetShowTeam(showRole, pr)
+	pr.ModPlayer.SetShowTeam(showRole)
 }
 
 func (pr *Player) SetHideShowTeam(isHide int) {
-	pr.ModPlayer.SetHideShowTeam(isHide, pr)
+	pr.ModPlayer.SetHideShowTeam(isHide)
 }
 
 func (pr *Player) Run() {
@@ -409,7 +412,7 @@ func (pr *Player) HandleBagSetBirth() {
 	fmt.Scan(&month)
 	fmt.Println("请输入日:")
 	fmt.Scan(&day)
-	pr.ModPlayer.SetBirth(month*100+day, pr)
+	pr.ModPlayer.SetBirth(month*100 + day)
 }
 
 //

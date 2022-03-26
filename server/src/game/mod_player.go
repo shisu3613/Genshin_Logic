@@ -14,8 +14,11 @@ type ShowRole struct {
 	OwnerId   int
 }
 type ModPlayer struct {
+	//整合好存入数据库的内容
 	DBPlayer
 
+	//装饰模式：父结构体的指针
+	player *Player
 	//ShowCard *Cards      //展示名片
 	//ShowTeam []*ShowRole //展示阵容
 }
@@ -26,46 +29,46 @@ type Cards struct {
 	OwnerId int
 }
 
-func (mp *ModPlayer) SetIcon(iconId int, player *Player) {
-	if !player.ModIcon.IsHasIcon(iconId) {
+func (mp *ModPlayer) SetIcon(iconId int) {
+	if !mp.player.ModIcon.IsHasIcon(iconId) {
 		//通知客户端，操作非法
 		fmt.Println("没有头像:", iconId)
 		return
 	}
 
-	player.ModPlayer.Icon = iconId
-	fmt.Println("变更头像为:", csvs.GetItemName(iconId), player.ModPlayer.Icon)
+	mp.player.ModPlayer.Icon = iconId
+	fmt.Println("变更头像为:", csvs.GetItemName(iconId), mp.player.ModPlayer.Icon)
 }
 
-func (mp *ModPlayer) SetCard(cardId int, player *Player) {
-	if !player.ModCard.IsHasCard(cardId) {
+func (mp *ModPlayer) SetCard(cardId int) {
+	if !mp.player.ModCard.IsHasCard(cardId) {
 		//通知客户端，操作非法
 		return
 	}
 
-	player.ModPlayer.Card = cardId
-	fmt.Println("当前名片", player.ModPlayer.Card)
+	mp.player.ModPlayer.Card = cardId
+	fmt.Println("当前名片", mp.player.ModPlayer.Card)
 }
 
-func (mp *ModPlayer) SetName(name string, player *Player) {
+func (mp *ModPlayer) SetName(name string) {
 	if GetManageBanWord().IsBanWord(name) {
 		return
 	}
 
-	player.ModPlayer.Name = name
-	fmt.Println("设置成功,名字变更为:", player.ModPlayer.Name)
+	mp.player.ModPlayer.Name = name
+	fmt.Println("设置成功,名字变更为:", mp.player.ModPlayer.Name)
 }
 
-func (mp *ModPlayer) SetSign(sign string, player *Player) {
+func (mp *ModPlayer) SetSign(sign string) {
 	if GetManageBanWord().IsBanWord(sign) {
 		return
 	}
 
-	player.ModPlayer.Sign = sign
-	fmt.Println("设置成功,签名变更为:", player.ModPlayer.Sign)
+	mp.player.ModPlayer.Sign = sign
+	fmt.Println("设置成功,签名变更为:", mp.player.ModPlayer.Sign)
 }
 
-func (mp *ModPlayer) AddExp(exp int, player *Player) {
+func (mp *ModPlayer) AddExp(exp int) {
 	mp.PlayerExp += exp
 	for {
 		config := csvs.GetNowLevelConfig(mp.PlayerLevel)
@@ -76,7 +79,7 @@ func (mp *ModPlayer) AddExp(exp int, player *Player) {
 			break
 		}
 		//是否完成任务
-		if config.ChapterId > 0 && !player.ModUniqueTask.IsTaskFinish(config.ChapterId) {
+		if config.ChapterId > 0 && !mp.player.ModUniqueTask.IsTaskFinish(config.ChapterId) {
 			break
 		}
 		if mp.PlayerExp >= config.PlayerExp {
@@ -89,7 +92,7 @@ func (mp *ModPlayer) AddExp(exp int, player *Player) {
 	fmt.Println("当前等级:", mp.PlayerLevel, "---当前经验：", mp.PlayerExp)
 }
 
-func (mp *ModPlayer) ReduceWorldLevel(player *Player) {
+func (mp *ModPlayer) ReduceWorldLevel() {
 	if mp.WorldLevel < csvs.ReduceWorldLevelStart {
 		fmt.Println("操作失败:, ---当前世界等级：", mp.WorldLevel)
 		return
@@ -111,7 +114,7 @@ func (mp *ModPlayer) ReduceWorldLevel(player *Player) {
 	return
 }
 
-func (mp *ModPlayer) ReturnWorldLevel(player *Player) {
+func (mp *ModPlayer) ReturnWorldLevel() {
 	if mp.WorldLevelNow == mp.WorldLevel {
 		fmt.Println("操作失败:, ---当前世界等级：", mp.WorldLevel, "---真实世界等级：", mp.WorldLevelNow)
 		return
@@ -129,7 +132,7 @@ func (mp *ModPlayer) ReturnWorldLevel(player *Player) {
 }
 
 // SetBirth 月份判断，已经设置过生日也要判断
-func (mp *ModPlayer) SetBirth(birth int, player *Player) {
+func (mp *ModPlayer) SetBirth(birth int) {
 	if mp.Birth > 0 {
 		fmt.Println("已设置过生日!")
 		return
@@ -180,7 +183,7 @@ func (mp *ModPlayer) IsBirthDay() bool {
 	return false
 }
 
-func (mp *ModPlayer) SetShowCard(showCard []int, player *Player) {
+func (mp *ModPlayer) SetShowCard(showCard []int) {
 
 	if len(showCard) > csvs.ShowSize {
 		return
@@ -193,7 +196,7 @@ func (mp *ModPlayer) SetShowCard(showCard []int, player *Player) {
 		if ok {
 			continue
 		}
-		if !player.ModCard.IsHasCard(cardId) { //判断玩家有没有这个名片
+		if !mp.player.ModCard.IsHasCard(cardId) { //判断玩家有没有这个名片
 			continue
 		}
 		newList = append(newList, cardId) //切片来保证数据
@@ -205,7 +208,7 @@ func (mp *ModPlayer) SetShowCard(showCard []int, player *Player) {
 	fmt.Println(mp.ShowCard)
 }
 
-func (mp *ModPlayer) SetShowTeam(showRole []int, player *Player) {
+func (mp *ModPlayer) SetShowTeam(showRole []int) {
 	if len(showRole) > csvs.ShowSize {
 		fmt.Println("消息结构错误")
 		return
@@ -218,12 +221,12 @@ func (mp *ModPlayer) SetShowTeam(showRole []int, player *Player) {
 		if ok {
 			continue
 		}
-		if !player.ModRole.IsHasRole(roleId) {
+		if !mp.player.ModRole.IsHasRole(roleId) {
 			continue
 		}
 		showRole := new(ShowRole)
 		showRole.RoleId = roleId
-		showRole.RoleLevel = player.ModRole.GetRoleLevel(roleId)
+		showRole.RoleLevel = mp.player.ModRole.GetRoleLevel(roleId)
 		newList = append(newList, showRole)
 		roleExist[roleId] = 1
 	}
@@ -231,7 +234,7 @@ func (mp *ModPlayer) SetShowTeam(showRole []int, player *Player) {
 	fmt.Println(mp.ShowCard)
 }
 
-func (mp *ModPlayer) SetHideShowTeam(isHide int, player *Player) {
+func (mp *ModPlayer) SetHideShowTeam(isHide int) {
 	if isHide != csvs.LogicFalse && isHide != csvs.LogicTrue {
 		return
 	}
