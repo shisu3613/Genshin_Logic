@@ -43,6 +43,7 @@ func (lc *LoadOrCreatRouter) Handler(request ziface.IRequest) {
 		player.SendStringMsg(2, player.ModPlayer.Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
 	default:
 		player := game.NewClientPlayer(conn)
+		conn.SetProperty("PID", msgChoice-100000000)
 		if DB.GormDB.First(&player.ModPlayer.DBPlayer, msgChoice-100000000).RecordNotFound() {
 			player.SendStringMsg(800, "当前UID不存在；请重新输入")
 		} else {
@@ -59,7 +60,7 @@ func (lc *LoadOrCreatRouter) Handler(request ziface.IRequest) {
 func DoConnectionBegin(conn ziface.IConnection) {
 	fmt.Println("=======>DoConnectionBegin is Called ...")
 
-	//todo:增加读取存档功能
+	//finish:增加读取存档功能
 	//当前客户端连接成功后发送信息给客户端
 	data, err := json.Marshal("欢迎来到提瓦特大陆，读取存档请输入UID,新建存档请输入'-1'")
 	if err != nil {

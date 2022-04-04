@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	DB "server/DB/GORM"
 	"server/csvs"
 	"time"
 )
@@ -251,4 +252,24 @@ func (mp *ModPlayer) SetIsGM(isGm int) { //布尔值尽量用int来代替
 
 func (mp *ModPlayer) IsCanEnter() bool {
 	return int64(mp.Prohibit) < time.Now().Unix()
+}
+
+func (mp *ModPlayer) LoadData() {
+	uid, err := mp.player.Conn.GetProperty("PID")
+	if err != nil {
+		mp.player.SendStringMsg(800, "意外错误，请重新输入id")
+	}
+	if DB.GormDB.First(&mp.player.ModPlayer.DBPlayer, uid.(int)).RecordNotFound() {
+		mp.player.SendStringMsg(800, "当前UID不存在；请重新输入")
+	} else {
+		//conn.SetProperty("PID", player.ModPlayer.UserId)
+		mp.player.SyncPid()
+		//将玩家加入世界管理器中
+		WorldMgrObj.AddPlayer(mp.player)
+		mp.player.SendStringMsg(2, mp.player.ModPlayer.Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+	}
+}
+
+func (mp *ModPlayer) SaveData() {
+	DB.GormDB.Save(&mp.player.ModPlayer.DBPlayer)
 }

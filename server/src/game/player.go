@@ -7,17 +7,23 @@ import (
 	"server/csvs"
 	"server/msgJson"
 	"server/zinx/ziface"
-	"sync"
 )
 
 const (
 	TaskStateInit   = 0
 	TaskStateDoing  = 1
 	TaskStateFinish = 2
+	ModPlay         = "player"
 )
 
-var PIDGen int = 1    //用于生成玩家ID的计数器
-var IDLock sync.Mutex //保护PIDGen的互斥机制
+//var PIDGen int = 1    //用于生成玩家ID的计数器
+//var IDLock sync.Mutex //保护PIDGen的互斥机制
+
+// ModBase 泛型改写模块
+type ModBase interface {
+	LoadData()
+	SaveData()
+}
 
 type Player struct {
 	//客户端连接功能当前
@@ -35,6 +41,8 @@ type Player struct {
 	ModHome       *ModHome       //家园模块
 	ModWish       *ModWish
 	ModMap        *ModMap //地图逻辑模块
+
+	//modManage map[string]ModBase
 }
 
 func NewClientPlayer(conn ziface.IConnection) *Player {
@@ -89,6 +97,13 @@ func NewClientPlayer(conn ziface.IConnection) *Player {
 	player.ModPlayer.WorldLevelNow = 1
 	player.ModPlayer.player = player
 	//****************************************
+
+	//******************泛型更新部分*********************
+	//初始化管理模块
+	//player.modManage = make(map[string]ModBase)
+
+	//player.modManage = map[string]ModBase{}
+
 	return player
 }
 
