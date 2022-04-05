@@ -22,7 +22,8 @@ func init() {
 func (wm *WorldManager) AddPlayer(player *Player) {
 	//将player添加到 世界管理器中
 	wm.pLock.Lock()
-	wm.Players[player.ModPlayer.UserId] = player
+	UserID, _ := player.GetUserID()
+	wm.Players[UserID] = player
 	wm.pLock.Unlock()
 }
 

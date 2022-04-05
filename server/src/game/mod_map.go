@@ -113,7 +113,7 @@ func (mm *ModMap) SetEventState(mapID int, eventId int, eventState int, player *
 				continue
 			}
 			for _, v := range DropItemConfigs {
-				randNum := (rand.Intn(v.ItemNumMax-v.ItemNumMin+1) + v.ItemNumMin) * (player.ModPlayer.WorldLevelNow*v.WorldAdd + csvs.DropWeightAll) / csvs.DropWeightAll
+				randNum := (rand.Intn(v.ItemNumMax-v.ItemNumMin+1) + v.ItemNumMin) * (player.GetMod(ModPlay).(*ModPlayer).WorldLevelNow*v.WorldAdd + csvs.DropWeightAll) / csvs.DropWeightAll
 				mm.MapInfo[mapID].DropItemsOnMap[v.ItemId] += randNum
 			}
 		}
@@ -124,7 +124,7 @@ func (mm *ModMap) SetEventState(mapID int, eventId int, eventState int, player *
 				continue
 			}
 			for _, v := range DropItemConfigs {
-				randNum := (rand.Intn(v.ItemNumMax-v.ItemNumMin+1) + v.ItemNumMin) * (player.ModPlayer.WorldLevelNow*v.WorldAdd + csvs.DropWeightAll) / csvs.DropWeightAll
+				randNum := (rand.Intn(v.ItemNumMax-v.ItemNumMin+1) + v.ItemNumMin) * (player.GetMod(ModPlay).(*ModPlayer).WorldLevelNow*v.WorldAdd + csvs.DropWeightAll) / csvs.DropWeightAll
 				player.ModBag.AddItem(v.ItemId, int64(randNum), player)
 			}
 		}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	DB "server/DB/GORM"
 	"server/csvs"
 	"server/msgJson"
 	"server/zinx/ziface"
@@ -21,16 +22,24 @@ const (
 
 // ModBase 泛型改写模块
 type ModBase interface {
+	// LoadData
+	// @Description: load the data from mysql
 	LoadData()
+	// SaveData
+	// @Description: when the mod finished, rewrite to database
 	SaveData()
+	// init
+	// @Description: 通过装饰模式将指针赋给模块,初始化模块不与数据库交互
+	// @param player
+	init(player *Player)
 }
 
 type Player struct {
 	//客户端连接功能当前
 	Conn ziface.IConnection //当前玩家连接
 
-	ModPlayer     *ModPlayer //modplayer包含玩家的基本面板信息，UID即是玩家当前ID
-	ModIcon       *ModIcon   //解耦：包含头像信息，链接数据库或者客户端本地缓存中的id和图片
+	//ModPlayer     *ModPlayer //modplayer包含玩家的基本面板信息，UID即是玩家当前ID
+	ModIcon       *ModIcon //解耦：包含头像信息，链接数据库或者客户端本地缓存中的id和图片
 	ModCard       *ModCard
 	ModUniqueTask *ModUniqueTask //任务模块
 	ModRole       *ModRole       //人物模块
@@ -42,10 +51,12 @@ type Player struct {
 	ModWish       *ModWish
 	ModMap        *ModMap //地图逻辑模块
 
-	//modManage map[string]ModBase
+	modManage map[string]ModBase
 }
 
-func NewClientPlayer(conn ziface.IConnection) *Player {
+// InitClientPlayer @Modified By WangYuding 2022/4/5 18:06:00
+// @Modified description 功能进一步分割这个部分只管初始化play模块，与数据库无关
+func InitClientPlayer(conn ziface.IConnection) *Player {
 	player := new(Player)
 	//绑定客户端连接
 	player.Conn = conn
@@ -56,9 +67,9 @@ func NewClientPlayer(conn ziface.IConnection) *Player {
 	//PIDGen++
 	//IDLock.Unlock()
 
-	player.ModPlayer = new(ModPlayer)
+	//player.GetMod(ModPlay).(*ModPlayer) = new(ModPlayer)
 	//playerMod里面绑定了UID
-	//player.ModPlayer.UserId = ID
+	//player.GetMod(ModPlay).(*ModPlayer).UserId = ID
 
 	player.ModIcon = new(ModIcon)
 	player.ModIcon.IconInfo = make(map[int]*Icon)
@@ -91,25 +102,28 @@ func NewClientPlayer(conn ziface.IConnection) *Player {
 	player.ModWish.NormalWishPool = new(WishPool)
 
 	//****************************************
-	player.ModPlayer.PlayerLevel = 1
-	player.ModPlayer.Name = "旅行者"
-	player.ModPlayer.WorldLevel = 1
-	player.ModPlayer.WorldLevelNow = 1
-	player.ModPlayer.player = player
+	//player.GetMod(ModPlay).(*ModPlayer).PlayerLevel = 1
+	//player.GetMod(ModPlay).(*ModPlayer).Name = "旅行者"
+	//player.GetMod(ModPlay).(*ModPlayer).WorldLevel = 1
+	//player.GetMod(ModPlay).(*ModPlayer).WorldLevelNow = 1
+	//player.GetMod(ModPlay).(*ModPlayer).player = player
 	//****************************************
 
 	//******************泛型更新部分*********************
 	//初始化管理模块
-	//player.modManage = make(map[string]ModBase)
+	player.modManage = make(map[string]ModBase)
 
-	//player.modManage = map[string]ModBase{}
+	player.modManage = map[string]ModBase{
+		ModPlay: new(ModPlayer),
+	}
+	player.initMod()
 
 	return player
 }
 
 func NewTestPlayer() *Player {
 	player := new(Player)
-	player.ModPlayer = new(ModPlayer)
+	//player.GetMod(ModPlay).(*ModPlayer) = new(ModPlayer)
 	player.ModIcon = new(ModIcon)
 	player.ModIcon.IconInfo = make(map[int]*Icon)
 	player.ModCard = new(ModCard)
@@ -141,21 +155,77 @@ func NewTestPlayer() *Player {
 	player.ModWish.NormalWishPool = new(WishPool)
 
 	//****************************************
-	player.ModPlayer.PlayerLevel = 1
-	player.ModPlayer.Name = "旅行者"
-	player.ModPlayer.WorldLevel = 1
-	player.ModPlayer.WorldLevelNow = 1
-	player.ModPlayer.player = player
+	//player.GetMod(ModPlay).(*ModPlayer).PlayerLevel = 1
+	//player.GetMod(ModPlay).(*ModPlayer).Name = "旅行者"
+	//player.GetMod(ModPlay).(*ModPlayer).WorldLevel = 1
+	//player.GetMod(ModPlay).(*ModPlayer).WorldLevelNow = 1
+	//player.GetMod(ModPlay).(*ModPlayer).player = player
 
 	//****************************************
+	player.modManage = make(map[string]ModBase)
+
+	player.modManage = map[string]ModBase{
+		ModPlay: new(ModPlayer),
+	}
+	player.initMod()
 	return player
+}
+
+// CreateRoleInDB
+// @Description 将新的角色数据插入数据库
+// @Author WangYuding 2022-04-05 18:13:42 ${time}
+// @Return {
+func (pr *Player) CreateRoleInDB() {
+	//在数据库中生成对应的记录，根据记录生成对应的user_id
+	DB.GormDB.Create(&pr.GetMod(ModPlay).(*ModPlayer).DBPlayer)
+	//fmt.Println(player.ModPlayer.DBPlayer.ID)
+	//告知客户端pID,同步已经生成的玩家ID给客户端
+	DB.GormDB.Model(&pr.GetMod(ModPlay).(*ModPlayer).DBPlayer).Update("user_id", pr.GetMod(ModPlay).(*ModPlayer).DBPlayer.ID+100000000)
+	pr.SyncPid()
+	pr.Conn.SetProperty("PID", pr.GetMod(ModPlay).(*ModPlayer).UserId)
+
+	//将玩家加入世界管理器中
+	WorldMgrObj.AddPlayer(pr)
+	pr.SendStringMsg(2, pr.GetMod(ModPlay).(*ModPlayer).Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+}
+
+// initMod
+// @Description 初始化mod模块
+// @Author WangYuding 2022-04-05 17:39:26
+func (pr *Player) initMod() {
+	for _, v := range pr.modManage {
+		v.init(pr)
+	}
+}
+
+// GetModManager
+// @Description 获得模块管理模块
+// @Author WangYuding 2022-04-05 18:25:14
+// @Return map[string]ModBase
+func (pr *Player) GetModManager() map[string]ModBase {
+	return pr.modManage
+}
+
+// GetUserID
+// @Description 从当前Conn中获取uid
+// @Author WangYuding 2022-04-05 18:28:32
+func (pr *Player) GetUserID() (int, error) {
+	uid, err := pr.Conn.GetProperty("PID")
+	if err != nil {
+		return -1, err
+	}
+	return uid.(int), nil
+}
+
+func (pr *Player) GetMod(Name string) ModBase {
+	return pr.modManage[Name]
 }
 
 // SyncPid 告知客户端pID,同步已经生成的玩家ID给客户端
 func (pr *Player) SyncPid() {
 	log.Println("SyncPid")
 
-	pidMsg := msgJson.SyncPID{PID: pr.ModPlayer.UserId}
+	pidMsg := msgJson.SyncPID{PID: pr.GetMod(ModPlay).(*ModPlayer).UserId}
 	data, err := json.Marshal(pidMsg) //
 	if err != nil {
 		log.Println(err)
@@ -182,43 +252,43 @@ func (pr *Player) SendStringMsg(msgId uint32, msg string) {
 
 // RecvSetIcon 对外接口
 func (pr *Player) RecvSetIcon(iconId int) {
-	pr.ModPlayer.SetIcon(iconId)
+	pr.GetMod(ModPlay).(*ModPlayer).SetIcon(iconId)
 }
 
 func (pr *Player) RecvSetCard(cardId int) {
-	pr.ModPlayer.SetCard(cardId)
+	pr.GetMod(ModPlay).(*ModPlayer).SetCard(cardId)
 }
 
 func (pr *Player) RecvSetName(name string) {
-	pr.ModPlayer.SetName(name)
+	pr.GetMod(ModPlay).(*ModPlayer).SetName(name)
 }
 
 func (pr *Player) RecvSetSign(sign string) {
-	pr.ModPlayer.SetSign(sign)
+	pr.GetMod(ModPlay).(*ModPlayer).SetSign(sign)
 }
 
 func (pr *Player) ReduceWorldLevel() {
-	pr.ModPlayer.ReduceWorldLevel()
+	pr.GetMod(ModPlay).(*ModPlayer).ReduceWorldLevel()
 }
 
 func (pr *Player) ReturnWorldLevel() {
-	pr.ModPlayer.ReturnWorldLevel()
+	pr.GetMod(ModPlay).(*ModPlayer).ReturnWorldLevel()
 }
 
 func (pr *Player) SetBirth(birth int) {
-	pr.ModPlayer.SetBirth(birth)
+	pr.GetMod(ModPlay).(*ModPlayer).SetBirth(birth)
 }
 
 func (pr *Player) SetShowCard(showCard []int) {
-	pr.ModPlayer.SetShowCard(showCard)
+	pr.GetMod(ModPlay).(*ModPlayer).SetShowCard(showCard)
 }
 
 func (pr *Player) SetShowTeam(showRole []int) {
-	pr.ModPlayer.SetShowTeam(showRole)
+	pr.GetMod(ModPlay).(*ModPlayer).SetShowTeam(showRole)
 }
 
 func (pr *Player) SetHideShowTeam(isHide int) {
-	pr.ModPlayer.SetHideShowTeam(isHide)
+	pr.GetMod(ModPlay).(*ModPlayer).SetHideShowTeam(isHide)
 }
 
 func (pr *Player) Run() {
@@ -227,9 +297,9 @@ func (pr *Player) Run() {
 	fmt.Println("Test Tools by YudingWang Learn from B站刘丹冰Aceld,大海葵,一棵平衡树")
 	fmt.Println("模拟用户创建成功OK------开始测试")
 	fmt.Println("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓")
-	//fmt.Println(pr.ModPlayer.Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+	//fmt.Println(pr.GetMod(ModPlay).(*ModPlayer).Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
 	for {
-		fmt.Println(pr.ModPlayer.Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+		fmt.Println(pr.GetMod(ModPlay).(*ModPlayer).Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
 		var modChoose int
 		_, err := fmt.Scan(&modChoose)
 		if err != nil {
@@ -248,7 +318,7 @@ func (pr *Player) Run() {
 		case 5:
 			pr.HandleMap()
 		}
-		//fmt.Println(pr.ModPlayer.Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘）5.地图")
+		//fmt.Println(pr.GetMod(ModPlay).(*ModPlayer).Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘）5.地图")
 	}
 }
 
@@ -279,61 +349,61 @@ func (pr *Player) HandleBase() {
 
 // HandleBaseGetInfoServer 用于服务器生成具体信息的列表
 func (pr *Player) HandleBaseGetInfoServer() (res string) {
-	res += fmt.Sprintln("名字:", pr.ModPlayer.Name)
-	res += fmt.Sprintln("等级:", pr.ModPlayer.PlayerLevel)
-	res += fmt.Sprintln("大世界等级:", pr.ModPlayer.WorldLevelNow)
-	if pr.ModPlayer.Sign == "" {
+	res += fmt.Sprintln("名字:", pr.GetMod(ModPlay).(*ModPlayer).Name)
+	res += fmt.Sprintln("等级:", pr.GetMod(ModPlay).(*ModPlayer).PlayerLevel)
+	res += fmt.Sprintln("大世界等级:", pr.GetMod(ModPlay).(*ModPlayer).WorldLevelNow)
+	if pr.GetMod(ModPlay).(*ModPlayer).Sign == "" {
 		res += fmt.Sprintln("签名:", "未设置")
 	} else {
-		res += fmt.Sprintln("签名:", pr.ModPlayer.Sign)
+		res += fmt.Sprintln("签名:", pr.GetMod(ModPlay).(*ModPlayer).Sign)
 	}
 
-	if pr.ModPlayer.Icon == 0 {
+	if pr.GetMod(ModPlay).(*ModPlayer).Icon == 0 {
 		res += fmt.Sprintln("头像:", "未设置")
 	} else {
-		res += fmt.Sprintln("头像:", csvs.GetItemConfig(pr.ModPlayer.Icon), pr.ModPlayer.Icon)
+		res += fmt.Sprintln("头像:", csvs.GetItemConfig(pr.GetMod(ModPlay).(*ModPlayer).Icon), pr.GetMod(ModPlay).(*ModPlayer).Icon)
 	}
 
-	if pr.ModPlayer.Card == 0 {
+	if pr.GetMod(ModPlay).(*ModPlayer).Card == 0 {
 		res += fmt.Sprintln("名片:", "未设置")
 	} else {
-		res += fmt.Sprintln("名片:", csvs.GetItemConfig(pr.ModPlayer.Card), pr.ModPlayer.Card)
+		res += fmt.Sprintln("名片:", csvs.GetItemConfig(pr.GetMod(ModPlay).(*ModPlayer).Card), pr.GetMod(ModPlay).(*ModPlayer).Card)
 	}
 
-	if pr.ModPlayer.Birth == 0 {
+	if pr.GetMod(ModPlay).(*ModPlayer).Birth == 0 {
 		res += fmt.Sprintln("生日:", "未设置")
 	} else {
-		res += fmt.Sprintln("生日:", pr.ModPlayer.Birth/100, "月", pr.ModPlayer.Birth%100, "日")
+		res += fmt.Sprintln("生日:", pr.GetMod(ModPlay).(*ModPlayer).Birth/100, "月", pr.GetMod(ModPlay).(*ModPlayer).Birth%100, "日")
 	}
 	return res
 }
 
 func (pr *Player) HandleBaseGetInfo() {
-	fmt.Println("名字:", pr.ModPlayer.Name)
-	fmt.Println("等级:", pr.ModPlayer.PlayerLevel)
-	fmt.Println("大世界等级:", pr.ModPlayer.WorldLevelNow)
-	if pr.ModPlayer.Sign == "" {
+	fmt.Println("名字:", pr.GetMod(ModPlay).(*ModPlayer).Name)
+	fmt.Println("等级:", pr.GetMod(ModPlay).(*ModPlayer).PlayerLevel)
+	fmt.Println("大世界等级:", pr.GetMod(ModPlay).(*ModPlayer).WorldLevelNow)
+	if pr.GetMod(ModPlay).(*ModPlayer).Sign == "" {
 		fmt.Println("签名:", "未设置")
 	} else {
-		fmt.Println("签名:", pr.ModPlayer.Sign)
+		fmt.Println("签名:", pr.GetMod(ModPlay).(*ModPlayer).Sign)
 	}
 
-	if pr.ModPlayer.Icon == 0 {
+	if pr.GetMod(ModPlay).(*ModPlayer).Icon == 0 {
 		fmt.Println("头像:", "未设置")
 	} else {
-		fmt.Println("头像:", csvs.GetItemConfig(pr.ModPlayer.Icon), pr.ModPlayer.Icon)
+		fmt.Println("头像:", csvs.GetItemConfig(pr.GetMod(ModPlay).(*ModPlayer).Icon), pr.GetMod(ModPlay).(*ModPlayer).Icon)
 	}
 
-	if pr.ModPlayer.Card == 0 {
+	if pr.GetMod(ModPlay).(*ModPlayer).Card == 0 {
 		fmt.Println("名片:", "未设置")
 	} else {
-		fmt.Println("名片:", csvs.GetItemConfig(pr.ModPlayer.Card), pr.ModPlayer.Card)
+		fmt.Println("名片:", csvs.GetItemConfig(pr.GetMod(ModPlay).(*ModPlayer).Card), pr.GetMod(ModPlay).(*ModPlayer).Card)
 	}
 
-	if pr.ModPlayer.Birth == 0 {
+	if pr.GetMod(ModPlay).(*ModPlayer).Birth == 0 {
 		fmt.Println("生日:", "未设置")
 	} else {
-		fmt.Println("生日:", pr.ModPlayer.Birth/100, "月", pr.ModPlayer.Birth%100, "日")
+		fmt.Println("生日:", pr.GetMod(ModPlay).(*ModPlayer).Birth/100, "月", pr.GetMod(ModPlay).(*ModPlayer).Birth%100, "日")
 	}
 }
 
@@ -418,7 +488,7 @@ func (pr *Player) HandleBagSetCardSet() {
 }
 
 func (pr *Player) HandleBagSetBirth() {
-	if pr.ModPlayer.Birth > 0 {
+	if pr.GetMod(ModPlay).(*ModPlayer).Birth > 0 {
 		fmt.Println("已设置过生日!")
 		return
 	}
@@ -427,7 +497,7 @@ func (pr *Player) HandleBagSetBirth() {
 	fmt.Scan(&month)
 	fmt.Println("请输入日:")
 	fmt.Scan(&day)
-	pr.ModPlayer.SetBirth(month*100 + day)
+	pr.GetMod(ModPlay).(*ModPlayer).SetBirth(month*100 + day)
 }
 
 //

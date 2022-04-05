@@ -25,7 +25,7 @@ func (hb *HandlerBag) Handler(request ziface.IRequest) {
 	_ = json.Unmarshal(request.GetData(), &modChoose)
 	switch modChoose {
 	case 0: //返回操作
-		player.SendStringMsg(2, player.ModPlayer.Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+		player.SendStringMsg(2, player.GetMod(game.ModPlay).(*game.ModPlayer).Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
 		goto END
 	case 1:
 		//增加物品模块

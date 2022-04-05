@@ -18,7 +18,8 @@ type ModPlayer struct {
 	//整合好存入数据库的内容
 	DBPlayer
 
-	//装饰模式：父结构体的指针
+	// @Modified By WangYuding 2022/4/5 0:23:00
+	// @Modified description 装饰模式：父结构体的指针
 	player *Player
 	//ShowCard *Cards      //展示名片
 	//ShowTeam []*ShowRole //展示阵容
@@ -30,6 +31,10 @@ type Cards struct {
 	OwnerId int
 }
 
+// SetIcon
+// @Description
+// @Author WangYuding 2022-04-05 00:36:23 ${time}
+// @Param iconId
 func (mp *ModPlayer) SetIcon(iconId int) {
 	if !mp.player.ModIcon.IsHasIcon(iconId) {
 		//通知客户端，操作非法
@@ -37,8 +42,8 @@ func (mp *ModPlayer) SetIcon(iconId int) {
 		return
 	}
 
-	mp.player.ModPlayer.Icon = iconId
-	fmt.Println("变更头像为:", csvs.GetItemName(iconId), mp.player.ModPlayer.Icon)
+	mp.Icon = iconId
+	fmt.Println("变更头像为:", csvs.GetItemName(iconId), mp.Icon)
 }
 
 func (mp *ModPlayer) SetCard(cardId int) {
@@ -47,8 +52,8 @@ func (mp *ModPlayer) SetCard(cardId int) {
 		return
 	}
 
-	mp.player.ModPlayer.Card = cardId
-	fmt.Println("当前名片", mp.player.ModPlayer.Card)
+	mp.Card = cardId
+	fmt.Println("当前名片", mp.Card)
 }
 
 func (mp *ModPlayer) SetName(name string) {
@@ -56,8 +61,8 @@ func (mp *ModPlayer) SetName(name string) {
 		return
 	}
 
-	mp.player.ModPlayer.Name = name
-	fmt.Println("设置成功,名字变更为:", mp.player.ModPlayer.Name)
+	mp.Name = name
+	fmt.Println("设置成功,名字变更为:", mp.Name)
 }
 
 func (mp *ModPlayer) SetSign(sign string) {
@@ -65,8 +70,8 @@ func (mp *ModPlayer) SetSign(sign string) {
 		return
 	}
 
-	mp.player.ModPlayer.Sign = sign
-	fmt.Println("设置成功,签名变更为:", mp.player.ModPlayer.Sign)
+	mp.Sign = sign
+	fmt.Println("设置成功,签名变更为:", mp.Sign)
 }
 
 func (mp *ModPlayer) AddExp(exp int) {
@@ -259,17 +264,25 @@ func (mp *ModPlayer) LoadData() {
 	if err != nil {
 		mp.player.SendStringMsg(800, "意外错误，请重新输入id")
 	}
-	if DB.GormDB.First(&mp.player.ModPlayer.DBPlayer, uid.(int)).RecordNotFound() {
+	if DB.GormDB.First(&mp.DBPlayer, uid.(int)).RecordNotFound() {
 		mp.player.SendStringMsg(800, "当前UID不存在；请重新输入")
 	} else {
 		//conn.SetProperty("PID", player.ModPlayer.UserId)
 		mp.player.SyncPid()
 		//将玩家加入世界管理器中
 		WorldMgrObj.AddPlayer(mp.player)
-		mp.player.SendStringMsg(2, mp.player.ModPlayer.Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+		mp.player.SendStringMsg(2, mp.Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
 	}
 }
 
 func (mp *ModPlayer) SaveData() {
-	DB.GormDB.Save(&mp.player.ModPlayer.DBPlayer)
+	DB.GormDB.Save(&mp.DBPlayer)
+}
+
+func (mp *ModPlayer) init(player *Player) {
+	mp.player = player
+	mp.PlayerLevel = 1
+	mp.Name = "旅行者"
+	mp.WorldLevel = 1
+	mp.WorldLevelNow = 1
 }

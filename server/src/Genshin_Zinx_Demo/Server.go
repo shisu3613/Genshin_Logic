@@ -27,32 +27,34 @@ func (lc *LoadOrCreatRouter) Handler(request ziface.IRequest) {
 	_ = json.Unmarshal(request.GetData(), &msgChoice)
 	switch msgChoice {
 	case -1:
-		player := game.NewClientPlayer(conn)
+		player := game.InitClientPlayer(conn)
+		player.CreateRoleInDB()
 
-		//在数据库中生成对应的记录，根据记录生成对应的user_id
-		DB.GormDB.Create(&player.ModPlayer.DBPlayer)
-		//fmt.Println(player.ModPlayer.DBPlayer.ID)
-		//告知客户端pID,同步已经生成的玩家ID给客户端
-		DB.GormDB.Model(&player.ModPlayer.DBPlayer).Update("user_id", player.ModPlayer.DBPlayer.ID+100000000)
-		player.SyncPid()
-		conn.SetProperty("PID", player.ModPlayer.UserId)
-
-		//将玩家加入世界管理器中
-		game.WorldMgrObj.AddPlayer(player)
-
-		player.SendStringMsg(2, player.ModPlayer.Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+		////在数据库中生成对应的记录，根据记录生成对应的user_id
+		//DB.GormDB.Create(&player.ModPlayer.DBPlayer)
+		////fmt.Println(player.ModPlayer.DBPlayer.ID)
+		////告知客户端pID,同步已经生成的玩家ID给客户端
+		//DB.GormDB.Model(&player.ModPlayer.DBPlayer).Update("user_id", player.ModPlayer.DBPlayer.ID+100000000)
+		//player.SyncPid()
+		//conn.SetProperty("PID", player.ModPlayer.UserId)
+		//
+		////将玩家加入世界管理器中
+		//game.WorldMgrObj.AddPlayer(player)
+		//
+		//player.SendStringMsg(2, player.ModPlayer.Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
 	default:
-		player := game.NewClientPlayer(conn)
+		player := game.InitClientPlayer(conn)
 		conn.SetProperty("PID", msgChoice-100000000)
-		if DB.GormDB.First(&player.ModPlayer.DBPlayer, msgChoice-100000000).RecordNotFound() {
-			player.SendStringMsg(800, "当前UID不存在；请重新输入")
-		} else {
-			conn.SetProperty("PID", player.ModPlayer.UserId)
-			player.SyncPid()
-			//将玩家加入世界管理器中
-			game.WorldMgrObj.AddPlayer(player)
-			player.SendStringMsg(2, player.ModPlayer.Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
-		}
+		//if DB.GormDB.First(&player.ModPlayer.DBPlayer, msgChoice-100000000).RecordNotFound() {
+		//	player.SendStringMsg(800, "当前UID不存在；请重新输入")
+		//} else {
+		//	conn.SetProperty("PID", player.ModPlayer.UserId)
+		//	player.SyncPid()
+		//	//将玩家加入世界管理器中
+		//	game.WorldMgrObj.AddPlayer(player)
+		//	player.SendStringMsg(2, player.ModPlayer.Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+		//}
+		player.GetMod(game.ModPlay).LoadData()
 	}
 }
 
@@ -84,7 +86,10 @@ func DoConnectionLost(conn ziface.IConnection) {
 	//触发玩家下线业务
 	if player != nil {
 		fmt.Println("Saving the information into the Database.....")
-		DB.GormDB.Save(&player.ModPlayer.DBPlayer)
+		//DB.GormDB.Save(&player.ModPlayer.DBPlayer)
+		for _, v := range player.GetModManager() {
+			v.SaveData()
+		}
 		game.WorldMgrObj.RemovePlayerByPID(pID.(int))
 	}
 
