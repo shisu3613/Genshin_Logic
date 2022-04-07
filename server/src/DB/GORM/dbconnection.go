@@ -3,8 +3,13 @@ package DB
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	//"github.com/go-sql-driver/mysql"
+
+	//_ "github.com/jinzhu/gorm/dialects/mysql"
+	//"github.com/jinzhu/gorm"
+	//"github.com/jinzhu/gorm"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"io/ioutil"
 )
 
@@ -26,13 +31,13 @@ func NewDBConnection() *gorm.DB {
 		panic(err)
 	}
 	//fmt.Printf("%s:%s@(%s)/%s?charset=utf8&parseTime=True&loc=Local", configure.UserName, configure.PWD, configure.DBServer, configure.DBName)
-	db, err := gorm.Open("mysql", fmt.Sprintf("%s:%s@(%s)/%s?charset=utf8&parseTime=True&loc=Local", configure.UserName, configure.PWD, configure.DBServer, configure.DBName))
+	db, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@(%s)/%s?charset=utf8&parseTime=True&loc=Local", configure.UserName, configure.PWD, configure.DBServer, configure.DBName)), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	} else {
 		fmt.Printf("Access to the database %s success\n", configure.DBName)
 	}
-	db.SingularTable(true)
+	//db.SingularTable(true)
 	return db
 }
 

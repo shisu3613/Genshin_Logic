@@ -11,6 +11,7 @@ type Icon struct {
 
 type ModIcon struct {
 	IconInfo map[int]*Icon
+	player   *Player
 }
 
 func (self *ModIcon) IsHasIcon(iconId int) bool {
@@ -39,4 +40,17 @@ func (self *ModIcon) CheckGetIcon(roleId int) {
 		return
 	}
 	self.AddItem(config.IconId)
+}
+
+func (self *ModIcon) SaveData() {
+	//content, err := json.Marshal(self)
+
+}
+
+func (self *ModIcon) LoadData() {
+
+}
+
+func (self *ModIcon) init(player *Player) {
+	self.player = player
 }

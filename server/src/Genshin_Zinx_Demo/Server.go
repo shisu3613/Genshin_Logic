@@ -3,10 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jinzhu/gorm"
+	//"github.com/jinzhu/gorm"
 	"log"
 	"math/rand"
-	DB "server/DB/GORM"
 	"server/api"
 	"server/csvs"
 	"server/game"
@@ -105,12 +104,12 @@ func main() {
 	//开启数据库
 	// 加载配置
 	//db := DB.NewDBConnection()
-	defer func(db *gorm.DB) {
-		err := db.Close()
-		if err != nil {
-			fmt.Println("Close Database failure:", err)
-		}
-	}(DB.GormDB)
+	//defer func(db *gorm.DB) {
+	//	err := db.Close()
+	//	if err != nil {
+	//		fmt.Println("Close Database failure:", err)
+	//	}
+	//}(DB.GormDB)
 
 	//DB.DBtest(db)
 	//DB.GormDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(&game.DBPlayer{})

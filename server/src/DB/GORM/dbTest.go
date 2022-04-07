@@ -2,7 +2,7 @@ package DB
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -24,11 +24,11 @@ func DBtest(db *gorm.DB) {
 		CreatedAt time.Time
 	}
 
-	if !db.HasTable(&Like{}) {
-		if err := db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8").CreateTable(&Like{}).Error; err != nil {
-			panic(err)
-		}
+	//if !db.Table(&Like{}) {
+	if err := db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET=utf8").Create(&Like{}).Error; err != nil {
+		panic(err)
 	}
+	//}
 
 	like := &Like{
 		Ip:        "1.1.1.1",

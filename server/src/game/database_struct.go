@@ -1,7 +1,10 @@
 package game
 
 import (
-	"github.com/jinzhu/gorm"
+	"fmt"
+	//"github.com/jinzhu/gorm"
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
 	DB "server/DB/GORM"
 )
 
@@ -19,8 +22,8 @@ type DBPlayer struct {
 	WorldLevelCool int64  //操作大世界等级的冷却时间
 	Birth          int    //生日
 
-	ShowCard     []*Cards    `gorm:"OwnerId:OwnerId;references:UserId"` //展示名片
-	ShowTeam     []*ShowRole `gorm:"OwnerId:OwnerId;references:UserId"` //展示阵容
+	ShowCard     []*Cards    `gorm:"foreignKey:OwnerId;references:UserId"` //展示名片
+	ShowTeam     []*ShowRole `gorm:"foreignKey:OwnerId;references:UserId"` //展示阵容
 	HideShowTeam int         //隐藏开关,是否包含角色属性
 
 	//不可见字段
@@ -28,10 +31,20 @@ type DBPlayer struct {
 	IsGM     int //GM账号标志
 }
 
+type DBIcon struct {
+	gorm.Model
+	UserId      int
+	IconMapData datatypes.JSON
+}
+
 func (DBPlayer) TableName() string {
 	return "BasicProfiles"
 }
 
 func init() {
-	DB.GormDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(&DBPlayer{}, &Cards{}, &ShowRole{})
+	err := DB.GormDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(&DBPlayer{}, &Cards{}, &ShowRole{})
+	if err != nil {
+		fmt.Println("connecting error!!!")
+		return
+	}
 }

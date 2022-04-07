@@ -1,8 +1,9 @@
 package game
 
 import (
+	"errors"
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	DB "server/DB/GORM"
 	"server/csvs"
 	"time"
@@ -264,7 +265,7 @@ func (mp *ModPlayer) LoadData() {
 	if err != nil {
 		mp.player.SendStringMsg(800, "意外错误，请重新输入id")
 	}
-	if DB.GormDB.First(&mp.DBPlayer, uid.(int)).RecordNotFound() {
+	if errors.Is(DB.GormDB.First(&mp.DBPlayer, uid.(int)).Error, gorm.ErrRecordNotFound) {
 		mp.player.SendStringMsg(800, "当前UID不存在；请重新输入")
 	} else {
 		//conn.SetProperty("PID", player.ModPlayer.UserId)
