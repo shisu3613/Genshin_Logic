@@ -28,7 +28,7 @@ func (mb *ModBag) AddItem(itemId int, num int64, player *Player) {
 	case csvs.ItemTypeRole:
 		player.ModRole.AddItem(itemId, num, player)
 	case csvs.ItemTypeIcon:
-		player.ModIcon.AddItem(itemId)
+		player.GetMod(IconMod).(*ModIcon).AddItem(itemId)
 	case csvs.ItemTypeCard:
 		player.ModCard.AddItem(itemId, 12)
 	case csvs.ItemTypeWeapon:

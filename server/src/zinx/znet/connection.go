@@ -194,11 +194,10 @@ func (c *Connection) Stop() {
 	}
 	fmt.Println("Conn Stop() ... ConnID -", c.ConnID)
 
-	c.IsClosed = true
-
 	//调用开发者注册的要在销毁链接之前需要执行的业务部分
 	c.TcpServer.CallOnConnStop(c)
 
+	c.IsClosed = true
 	//告知writer关闭
 	c.ExitChan <- true
 

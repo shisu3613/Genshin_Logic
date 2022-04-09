@@ -187,10 +187,11 @@ func (s *Server) CallOnConnStart(conn ziface.IConnection) {
 
 // CallOnConnStop 调用OnConnstop钩子函数的方法
 func (s *Server) CallOnConnStop(conn ziface.IConnection) {
-	s.ConnMgr.Remove(conn)
 	if s.OnConnStop != nil {
 		fmt.Println("----->Call OnConnStop()...")
 		s.OnConnStop(conn)
 	}
-
+	// @Modified By WangYuding 2022/4/10 0:08:00
+	// @Modified description 在所有数据库信息保存完后再移除conn
+	s.ConnMgr.Remove(conn)
 }

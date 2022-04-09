@@ -52,6 +52,6 @@ func (mr *ModRole) AddItem(roleId int, num int64, player *Player) {
 	if itemConfig != nil {
 		fmt.Println("获得角色", itemConfig.ItemName, "------总计", mr.RoleInfo[roleId].GetTimes, "次")
 	}
-	player.ModIcon.CheckGetIcon(roleId)
+	player.GetMod(IconMod).(*ModIcon).CheckGetIcon(roleId)
 	player.ModCard.CheckGetCard(roleId, 10) //友好度系统不完善
 }

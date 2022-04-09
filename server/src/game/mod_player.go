@@ -37,7 +37,7 @@ type Cards struct {
 // @Author WangYuding 2022-04-05 00:36:23 ${time}
 // @Param iconId
 func (mp *ModPlayer) SetIcon(iconId int) {
-	if !mp.player.ModIcon.IsHasIcon(iconId) {
+	if !mp.player.GetMod(IconMod).(*ModIcon).IsHasIcon(iconId) {
 		//通知客户端，操作非法
 		fmt.Println("没有头像:", iconId)
 		return
@@ -269,6 +269,7 @@ func (mp *ModPlayer) LoadData() {
 		mp.player.SendStringMsg(800, "当前UID不存在；请重新输入")
 	} else {
 		//conn.SetProperty("PID", player.ModPlayer.UserId)
+		mp.player.LoadElse()
 		mp.player.SyncPid()
 		//将玩家加入世界管理器中
 		WorldMgrObj.AddPlayer(mp.player)

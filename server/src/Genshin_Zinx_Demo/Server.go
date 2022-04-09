@@ -24,9 +24,10 @@ func (lc *LoadOrCreatRouter) Handler(request ziface.IRequest) {
 	conn := request.GetConnection()
 	var msgChoice int
 	_ = json.Unmarshal(request.GetData(), &msgChoice)
+	player := game.InitClientPlayer(conn)
 	switch msgChoice {
 	case -1:
-		player := game.InitClientPlayer(conn)
+		//player := game.InitClientPlayer(conn)
 		player.CreateRoleInDB()
 
 		////在数据库中生成对应的记录，根据记录生成对应的user_id
@@ -42,7 +43,7 @@ func (lc *LoadOrCreatRouter) Handler(request ziface.IRequest) {
 		//
 		//player.SendStringMsg(2, player.ModPlayer.Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
 	default:
-		player := game.InitClientPlayer(conn)
+		//player := game.InitClientPlayer(conn)
 		conn.SetProperty("PID", msgChoice-100000000)
 		//if DB.GormDB.First(&player.ModPlayer.DBPlayer, msgChoice-100000000).RecordNotFound() {
 		//	player.SendStringMsg(800, "当前UID不存在；请重新输入")
@@ -55,6 +56,7 @@ func (lc *LoadOrCreatRouter) Handler(request ziface.IRequest) {
 		//}
 		player.GetMod(game.ModPlay).LoadData()
 	}
+	//player.LoadElse()
 }
 
 // DoConnectionBegin 客户端和服务器链接创立成功时候，设置链接的一些属性，和发送开始消息给客户端

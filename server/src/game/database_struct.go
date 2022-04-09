@@ -10,7 +10,7 @@ import (
 
 type DBPlayer struct {
 	gorm.Model
-	UserId         int    `gorm:"unique_index:uid;"` //唯一id `gorm:"unique_index:hash_idx;"`
+	UserId         int    `gorm:"unique_index:uid"` //唯一id `gorm:"unique_index:hash_idx;"`
 	Icon           int    //头像   新增icon模块
 	Card           int    //名片   新增card模块
 	Name           string //名字   新增banword模块
@@ -33,7 +33,7 @@ type DBPlayer struct {
 
 type DBIcon struct {
 	gorm.Model
-	UserId      int
+	UserId      int `gorm:"index"`
 	IconMapData datatypes.JSON
 }
 
@@ -42,9 +42,10 @@ func (DBPlayer) TableName() string {
 }
 
 func init() {
-	err := DB.GormDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(&DBPlayer{}, &Cards{}, &ShowRole{})
+	err := DB.GormDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(&DBPlayer{}, &Cards{}, &ShowRole{}, &DBIcon{})
 	if err != nil {
-		fmt.Println("connecting error!!!")
+		fmt.Println("AutoMigrate error!!!:", err)
+
 		return
 	}
 }

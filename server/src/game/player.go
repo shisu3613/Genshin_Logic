@@ -15,6 +15,7 @@ const (
 	TaskStateDoing  = 1
 	TaskStateFinish = 2
 	ModPlay         = "player"
+	IconMod         = "icon"
 )
 
 //var PIDGen int = 1    //用于生成玩家ID的计数器
@@ -39,7 +40,7 @@ type Player struct {
 	Conn ziface.IConnection //当前玩家连接
 
 	//ModPlayer     *ModPlayer //modplayer包含玩家的基本面板信息，UID即是玩家当前ID
-	ModIcon       *ModIcon //解耦：包含头像信息，链接数据库或者客户端本地缓存中的id和图片
+	//ModIcon       *ModIcon //解耦：包含头像信息，链接数据库或者客户端本地缓存中的id和图片
 	ModCard       *ModCard
 	ModUniqueTask *ModUniqueTask //任务模块
 	ModRole       *ModRole       //人物模块
@@ -71,8 +72,8 @@ func InitClientPlayer(conn ziface.IConnection) *Player {
 	//playerMod里面绑定了UID
 	//player.GetMod(ModPlay).(*ModPlayer).UserId = ID
 
-	player.ModIcon = new(ModIcon)
-	player.ModIcon.IconInfo = make(map[int]*Icon)
+	//player.ModIcon = new(ModIcon)
+	//player.ModIcon.IconInfo = make(map[int]*Icon)
 	player.ModCard = new(ModCard)
 	player.ModCard.CardInfo = make(map[int]*Card)
 	player.ModUniqueTask = new(ModUniqueTask)
@@ -115,6 +116,7 @@ func InitClientPlayer(conn ziface.IConnection) *Player {
 
 	player.modManage = map[string]ModBase{
 		ModPlay: new(ModPlayer),
+		IconMod: new(ModIcon),
 	}
 	player.initMod()
 
@@ -124,8 +126,8 @@ func InitClientPlayer(conn ziface.IConnection) *Player {
 func NewTestPlayer() *Player {
 	player := new(Player)
 	//player.GetMod(ModPlay).(*ModPlayer) = new(ModPlayer)
-	player.ModIcon = new(ModIcon)
-	player.ModIcon.IconInfo = make(map[int]*Icon)
+	//player.ModIcon = new(ModIcon)
+	//player.ModIcon.IconInfo = make(map[int]*Icon)
 	player.ModCard = new(ModCard)
 	player.ModCard.CardInfo = make(map[int]*Card)
 	player.ModUniqueTask = new(ModUniqueTask)
@@ -166,6 +168,7 @@ func NewTestPlayer() *Player {
 
 	player.modManage = map[string]ModBase{
 		ModPlay: new(ModPlayer),
+		IconMod: new(ModIcon),
 	}
 	player.initMod()
 	return player
@@ -185,6 +188,7 @@ func (pr *Player) CreateRoleInDB() {
 	pr.Conn.SetProperty("PID", pr.GetMod(ModPlay).(*ModPlayer).UserId)
 
 	//将玩家加入世界管理器中
+	pr.LoadElse()
 	WorldMgrObj.AddPlayer(pr)
 	pr.SendStringMsg(2, pr.GetMod(ModPlay).(*ModPlayer).Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
 }
@@ -439,7 +443,7 @@ func (pr *Player) HandleBagSetIcon() {
 
 func (pr *Player) HandleBagSetIconGetInfo() {
 	fmt.Println("当前拥有头像如下:")
-	for _, v := range pr.ModIcon.IconInfo {
+	for _, v := range pr.GetMod(IconMod).(*ModIcon).IconInfo {
 		config := csvs.GetItemConfig(v.IconId)
 		if config != nil {
 			fmt.Println(config.ItemName, ":", config.ItemId)
@@ -661,6 +665,17 @@ func (pr *Player) HandleWishUp() {
 		default:
 			fmt.Println("无效输入")
 
+		}
+	}
+}
+
+// LoadElse
+// @Description load mod after the modplayer have load
+// @Author WangYuding 2022-04-09 22:32:50
+func (pr *Player) LoadElse() {
+	for x, v := range pr.modManage {
+		if x != ModPlay {
+			v.LoadData()
 		}
 	}
 }
