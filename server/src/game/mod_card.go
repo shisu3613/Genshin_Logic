@@ -35,7 +35,7 @@ func (mc *ModCard) AddItem(itemId int, friendliness int) {
 	}
 
 	mc.CardInfo[itemId] = &Card{CardId: itemId}
-	fmt.Println("获得名片：", itemId)
+	fmt.Println("获得名片：", csvs.GetItemName(itemId))
 }
 
 func (mc *ModCard) CheckGetCard(roleId int, friendliness int) {

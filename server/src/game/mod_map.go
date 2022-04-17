@@ -103,7 +103,7 @@ func (mm *ModMap) SetEventState(mapID int, eventId int, eventState int, player *
 	//mm.MapInfo[mapID].EventInfo[eventId].State = eventState
 	if eventState == csvs.EventEnd {
 		//先扣除需要消耗的物品
-		if err := player.ModBag.RemoveItem(eventConfig.CostItem, eventConfig.CostNum, player); err != nil {
+		if err := player.GetMod(BagMod).(*ModBag).RemoveItem(eventConfig.CostItem, eventConfig.CostNum); err != nil {
 			return err
 		}
 		//变成end就是说明东西都已经拾取了或者东西没拾取便离开地图了
@@ -125,7 +125,7 @@ func (mm *ModMap) SetEventState(mapID int, eventId int, eventState int, player *
 			}
 			for _, v := range DropItemConfigs {
 				randNum := (rand.Intn(v.ItemNumMax-v.ItemNumMin+1) + v.ItemNumMin) * (player.GetMod(ModPlay).(*ModPlayer).WorldLevelNow*v.WorldAdd + csvs.DropWeightAll) / csvs.DropWeightAll
-				player.ModBag.AddItem(v.ItemId, int64(randNum), player)
+				player.GetMod(BagMod).(*ModBag).AddItem(v.ItemId, int64(randNum))
 			}
 		}
 		fmt.Printf("当前事件%s交互完成\n", eventConfig.Name)
@@ -192,7 +192,7 @@ func (mm *ModMap) checkAnyDropOnMap(mapId int, player *Player) {
 	switch action {
 	case 1:
 		for k, v := range MapDrop {
-			player.ModBag.AddItemToBag(k, int64(v))
+			player.GetMod(BagMod).(*ModBag).AddItemToBag(k, int64(v))
 			delete(MapDrop, k)
 		}
 

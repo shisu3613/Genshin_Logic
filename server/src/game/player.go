@@ -16,6 +16,7 @@ const (
 	TaskStateFinish = 2
 	ModPlay         = "player"
 	IconMod         = "icon"
+	BagMod          = "bag"
 )
 
 //var PIDGen int = 1    //用于生成玩家ID的计数器
@@ -41,16 +42,17 @@ type Player struct {
 
 	//ModPlayer     *ModPlayer //modplayer包含玩家的基本面板信息，UID即是玩家当前ID
 	//ModIcon       *ModIcon //解耦：包含头像信息，链接数据库或者客户端本地缓存中的id和图片
+	//ModBag        *ModBag        //背包模块，核心模块
 	ModCard       *ModCard
 	ModUniqueTask *ModUniqueTask //任务模块
 	ModRole       *ModRole       //人物模块
-	ModBag        *ModBag        //背包模块，核心模块
-	ModWeapon     *ModWeapon     //武器背包模块
-	ModRelic      *ModRelic      //初始化圣遗物模块
-	ModCook       *ModCook       //初始化烹饪技能背包
-	ModHome       *ModHome       //家园模块
-	ModWish       *ModWish
-	ModMap        *ModMap //地图逻辑模块
+
+	ModWeapon *ModWeapon //武器背包模块
+	ModRelic  *ModRelic  //初始化圣遗物模块
+	ModCook   *ModCook   //初始化烹饪技能背包
+	ModHome   *ModHome   //家园模块
+	ModWish   *ModWish
+	ModMap    *ModMap //地图逻辑模块
 
 	modManage map[string]ModBase
 }
@@ -68,66 +70,26 @@ func InitClientPlayer(conn ziface.IConnection) *Player {
 	//PIDGen++
 	//IDLock.Unlock()
 
-	//player.GetMod(ModPlay).(*ModPlayer) = new(ModPlayer)
-	//playerMod里面绑定了UID
-	//player.GetMod(ModPlay).(*ModPlayer).UserId = ID
-
-	//player.ModIcon = new(ModIcon)
-	//player.ModIcon.IconInfo = make(map[int]*Icon)
-	player.ModCard = new(ModCard)
-	player.ModCard.CardInfo = make(map[int]*Card)
-	player.ModUniqueTask = new(ModUniqueTask)
-	player.ModUniqueTask.MyTaskInfo = make(map[int]*TaskInfo)
-	//player.ModUniqueTask.Locker = new(sync.RWMutex)
-	player.ModRole = new(ModRole)
-	player.ModRole.RoleInfo = make(map[int]*RoleInfo)
-	player.ModBag = new(ModBag)
-	player.ModBag.BagInfo = make(map[int]*ItemInfo)
-	player.ModWeapon = new(ModWeapon)
-	player.ModWeapon.WeaponInfo = make(map[int]*Weapon)
-
-	player.ModRelic = new(ModRelic)
-	player.ModRelic.RelicInfo = make(map[int]*Relic)
-
-	player.ModCook = new(ModCook)
-	player.ModCook.CookInfo = make(map[int]*Cook)
-
-	player.ModHome = new(ModHome)
-	player.ModHome.HomeItemInfo = make(map[int]*HomeItem)
-
-	player.ModMap = new(ModMap)
-	player.ModMap.InitData()
-	//抽卡掉落模块
-	player.ModWish = new(ModWish)
-	player.ModWish.UPWishPool = new(WishPool)
-	player.ModWish.NormalWishPool = new(WishPool)
-
-	//****************************************
-	//player.GetMod(ModPlay).(*ModPlayer).PlayerLevel = 1
-	//player.GetMod(ModPlay).(*ModPlayer).Name = "旅行者"
-	//player.GetMod(ModPlay).(*ModPlayer).WorldLevel = 1
-	//player.GetMod(ModPlay).(*ModPlayer).WorldLevelNow = 1
-	//player.GetMod(ModPlay).(*ModPlayer).player = player
-	//****************************************
-
-	//******************泛型更新部分*********************
-	//初始化管理模块
-	player.modManage = make(map[string]ModBase)
-
-	player.modManage = map[string]ModBase{
-		ModPlay: new(ModPlayer),
-		IconMod: new(ModIcon),
-	}
-	player.initMod()
+	PlayerInit(player)
 
 	return player
 }
 
 func NewTestPlayer() *Player {
 	player := new(Player)
+	PlayerInit(player)
+	return player
+}
+
+// PlayerInit @Modified By WangYuding 2022/4/17 20:40:00
+// @Modified description 抽出重复代码
+func PlayerInit(player *Player) {
 	//player.GetMod(ModPlay).(*ModPlayer) = new(ModPlayer)
 	//player.ModIcon = new(ModIcon)
 	//player.ModIcon.IconInfo = make(map[int]*Icon)
+
+	//player.ModBag = new(ModBag)
+	//player.ModBag.BagInfo = make(map[int]*ItemInfo)
 	player.ModCard = new(ModCard)
 	player.ModCard.CardInfo = make(map[int]*Card)
 	player.ModUniqueTask = new(ModUniqueTask)
@@ -135,8 +97,10 @@ func NewTestPlayer() *Player {
 	//player.ModUniqueTask.Locker = new(sync.RWMutex)
 	player.ModRole = new(ModRole)
 	player.ModRole.RoleInfo = make(map[int]*RoleInfo)
-	player.ModBag = new(ModBag)
-	player.ModBag.BagInfo = make(map[int]*ItemInfo)
+	// @Modified By WangYuding 2022/4/17 20:47:00
+	// @Modified description 临时增加处理方法
+	player.ModRole.player = player
+
 	player.ModWeapon = new(ModWeapon)
 	player.ModWeapon.WeaponInfo = make(map[int]*Weapon)
 
@@ -169,9 +133,10 @@ func NewTestPlayer() *Player {
 	player.modManage = map[string]ModBase{
 		ModPlay: new(ModPlayer),
 		IconMod: new(ModIcon),
+		BagMod:  new(ModBag),
 	}
 	player.initMod()
-	return player
+
 }
 
 // CreateRoleInDB
@@ -530,7 +495,7 @@ func (pr *Player) HandleBagUseItem() {
 	fmt.Scan(&itemId)
 	fmt.Println("物品数量")
 	fmt.Scan(&itemNum)
-	pr.ModBag.UseItem(itemId, int64(itemNum), pr)
+	pr.GetMod(BagMod).(*ModBag).UseItem(itemId, int64(itemNum))
 }
 
 func (pr *Player) HandleBagAddItem() {
@@ -540,7 +505,7 @@ func (pr *Player) HandleBagAddItem() {
 	fmt.Scan(&itemId)
 	fmt.Println("物品数量")
 	fmt.Scan(&itemNum)
-	pr.ModBag.AddItem(itemId, int64(itemNum), pr)
+	pr.GetMod(BagMod).(*ModBag).AddItem(itemId, int64(itemNum))
 }
 
 func (pr *Player) HandleBagRemoveItem() {
@@ -557,7 +522,7 @@ func (pr *Player) HandleBagRemoveItem() {
 		fmt.Scan(&itemId)
 		fmt.Println("物品数量")
 		fmt.Scan(&itemNum)
-		if err := pr.ModBag.RemoveItem(itemId, int64(itemNum), pr); err != nil {
+		if err := pr.GetMod(BagMod).(*ModBag).RemoveItem(itemId, int64(itemNum)); err != nil {
 			fmt.Println(err)
 		}
 	case csvs.RelicBagId:
@@ -643,30 +608,34 @@ func (pr *Player) HandleWishUp() {
 			return
 		case 1:
 			fmt.Println("如果祈愿之缘数量不足，请通过背包功能增加祈愿之缘，物品id为1000005")
-			if err := pr.ModBag.RemoveItem(1000005, 1, pr); err != nil {
+			if err := pr.GetMod(BagMod).(*ModBag).RemoveItem(1000005, 1); err != nil {
 				fmt.Println(err)
 				continue
 			}
 			pr.ModWish.DoPool(1, pr)
 		case 2:
 			fmt.Println("如果祈愿之缘数量不足，请通过背包功能增加祈愿之缘，物品id为1000005")
-			if err := pr.ModBag.RemoveItem(1000005, 10, pr); err != nil {
+			if err := pr.GetMod(BagMod).(*ModBag).RemoveItem(1000005, 10); err != nil {
 				fmt.Println(err)
 				continue
 			}
 			pr.ModWish.DoPool(10, pr)
 		case 3:
-			fmt.Printf("本次您一共进行了%d次祈愿，共获得五星角色%d位，占总数的%.4f%%,四星角色%d位，四星武器%d把，四星物品占总数的%.4f%%\n当前您的五星保底为%d抽，四星保底为%d抽\n",
-				pr.ModWish.UPWishPool.StatTotalWishes, pr.ModWish.UPWishPool.StatFiveTotal,
-				100*float32(pr.ModWish.UPWishPool.StatFiveTotal)/float32(pr.ModWish.UPWishPool.StatTotalWishes),
-				pr.ModWish.UPWishPool.StatFourRole, pr.ModWish.UPWishPool.StatFourWeapon,
-				100*float32(pr.ModWish.UPWishPool.StatFourRole+pr.ModWish.UPWishPool.StatFourWeapon)/float32(pr.ModWish.UPWishPool.StatTotalWishes),
-				pr.ModWish.UPWishPool.FiveStarTimes, pr.ModWish.UPWishPool.FourStarTimes)
+			fmt.Println(pr.WishHelper())
 		default:
 			fmt.Println("无效输入")
 
 		}
 	}
+}
+
+func (pr *Player) WishHelper() string {
+	return fmt.Sprintf("本次您一共进行了%d次祈愿，共获得五星角色%d位，占总数的%.4f%%,四星角色%d位，四星武器%d把，四星物品占总数的%.4f%%\n当前您的五星保底为%d抽，四星保底为%d抽\n",
+		pr.ModWish.UPWishPool.StatTotalWishes, pr.ModWish.UPWishPool.StatFiveTotal,
+		100*float32(pr.ModWish.UPWishPool.StatFiveTotal)/float32(pr.ModWish.UPWishPool.StatTotalWishes),
+		pr.ModWish.UPWishPool.StatFourRole, pr.ModWish.UPWishPool.StatFourWeapon,
+		100*float32(pr.ModWish.UPWishPool.StatFourRole+pr.ModWish.UPWishPool.StatFourWeapon)/float32(pr.ModWish.UPWishPool.StatTotalWishes),
+		pr.ModWish.UPWishPool.FiveStarTimes, pr.ModWish.UPWishPool.FourStarTimes)
 }
 
 // LoadElse
@@ -678,4 +647,11 @@ func (pr *Player) LoadElse() {
 			v.LoadData()
 		}
 	}
+}
+
+// AddBagItem
+// @Description: addItem在player层面上的包装
+// @receiver pr
+func (pr *Player) AddBagItem(itemId int, itemNum int64) {
+	pr.GetMod(BagMod).(*ModBag).AddItem(itemId, itemNum)
 }

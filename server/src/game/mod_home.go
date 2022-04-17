@@ -14,9 +14,10 @@ type HomeItem struct {
 type ModHome struct {
 	HomeItemInfo     map[int]*HomeItem
 	UsedHomeItemInfo map[int]*HomeItem
+	player           *Player
 }
 
-func (mh *ModHome) AddItem(itemId int, num int64, player *Player) {
+func (mh *ModHome) AddItem(itemId int, num int64) {
 	_, ok := mh.HomeItemInfo[itemId]
 	if ok {
 		mh.HomeItemInfo[itemId].ItemNum += num

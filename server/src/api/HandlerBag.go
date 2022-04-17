@@ -31,7 +31,8 @@ func (hb *HandlerBag) Handler(request ziface.IRequest) {
 		//增加物品模块
 		player.SendStringMsg(51, "")
 		//player.SendStringMsg(5, "当前处于背包界面,请选择操作：0返回1增加物品2扣除物品3使用物品")
-
+	default:
+		player.SendStringMsg(5, "当前处于背包界面,请选择操作：0返回1增加物品2扣除物品3使用物品")
 	}
 END:
 }

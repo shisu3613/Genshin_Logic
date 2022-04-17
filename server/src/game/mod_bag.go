@@ -1,8 +1,11 @@
 package game
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"gorm.io/gorm"
+	DB "server/DB/GORM"
 	"server/csvs"
 )
 
@@ -13,9 +16,12 @@ type ItemInfo struct {
 
 type ModBag struct {
 	BagInfo map[int]*ItemInfo
+	player  *Player
 }
 
-func (mb *ModBag) AddItem(itemId int, num int64, player *Player) {
+// AddItem @Modified By WangYuding 2022/4/17 17:43:00
+// @Modified description 删除player参数，使用装饰模式
+func (mb *ModBag) AddItem(itemId int, num int64) {
 	itemConfig := csvs.GetItemConfig(itemId)
 	if itemConfig == nil {
 		fmt.Println(itemId, "物品不存在")
@@ -26,24 +32,24 @@ func (mb *ModBag) AddItem(itemId int, num int64, player *Player) {
 	//case csvs.ITEMTYPE_NORMAL:
 	//	mb.AddItemToBag(itemId, num)
 	case csvs.ItemTypeRole:
-		player.ModRole.AddItem(itemId, num, player)
+		mb.player.ModRole.AddItem(itemId, num)
 	case csvs.ItemTypeIcon:
-		player.GetMod(IconMod).(*ModIcon).AddItem(itemId)
+		mb.player.GetMod(IconMod).(*ModIcon).AddItem(itemId)
 	case csvs.ItemTypeCard:
-		player.ModCard.AddItem(itemId, 12)
+		mb.player.ModCard.AddItem(itemId, 12)
 	case csvs.ItemTypeWeapon:
-		player.ModWeapon.AddItem(itemId, int(num))
+		mb.player.ModWeapon.AddItem(itemId, int(num))
 	case csvs.ItemTypeRelic:
-		player.ModRelic.AddItem(itemId, int(num))
+		mb.player.ModRelic.AddItem(itemId, int(num))
 	case csvs.ItemTypeCook:
-		player.ModCook.AddItem(itemId)
+		mb.player.ModCook.AddItem(itemId)
 	case csvs.ItemTypeCookBook:
 		if num > 1 {
 			fmt.Println("注意：只能有一份食谱！")
 		}
 		mb.AddItemToBag(itemId, 1)
 	case csvs.ItemTypeFurn: //家园模块，家具识别
-		player.ModHome.AddItem(itemId, num, player)
+		mb.player.ModHome.AddItem(itemId, num)
 
 	default: //目前上是可以放进背包里面的物品
 		mb.AddItemToBag(itemId, num)
@@ -64,7 +70,7 @@ func (mb *ModBag) AddItemToBag(itemId int, num int64) {
 
 }
 
-func (mb *ModBag) RemoveItem(itemId int, num int64, player *Player) error {
+func (mb *ModBag) RemoveItem(itemId int, num int64) error {
 	if itemId == 0 {
 		return nil
 	}
@@ -121,7 +127,7 @@ func (mb *ModBag) RemoveItemToBag(itemId int, num int64) error {
 			nowNum = mb.BagInfo[itemId].ItemNum
 		}
 		//fmt.Sprintln(itemConfig.ItemName, "数量不足", "----当前数量：", nowNum)
-		return errors.New(fmt.Sprint(itemConfig.ItemName, "数量不足", "----当前数量：", nowNum, "请通过背包系统物品Id:", itemId, "增加物品"))
+		return errors.New(fmt.Sprint(itemConfig.ItemName, "数量不足", "----当前数量：", nowNum, ",请通过背包系统物品Id:", itemId, "增加物品"))
 	}
 
 	_, ok := mb.BagInfo[itemId]
@@ -148,7 +154,7 @@ func (mb *ModBag) HasEnoughItem(itemId int, num int64) bool {
 	return true
 }
 
-func (mb *ModBag) UseItem(itemId int, num int64, player *Player) {
+func (mb *ModBag) UseItem(itemId int, num int64) {
 	itemConfig := csvs.GetItemConfig(itemId)
 	if itemConfig == nil {
 		fmt.Println(itemId, "物品不存在")
@@ -178,7 +184,7 @@ func (mb *ModBag) UseItem(itemId int, num int64, player *Player) {
 	//case csvs.ItemTypeRelic:
 	//	player.ModRelic.AddItem(itemId, int(num))
 	case csvs.ItemTypeCookBook:
-		mb.UseCookBook(itemId, num, player)
+		mb.UseCookBook(itemId, num)
 
 	default: //目前上是可以放进背包里面的物品
 		//mb.AddItemToBag(itemId, num)
@@ -187,15 +193,63 @@ func (mb *ModBag) UseItem(itemId int, num int64, player *Player) {
 	}
 }
 
-func (mb *ModBag) UseCookBook(itemId int, num int64, player *Player) {
+func (mb *ModBag) UseCookBook(itemId int, num int64) {
 	CookBook := csvs.GetCookBookConfig(itemId)
 	if CookBook == nil {
 		fmt.Println("食谱不存在")
 		return
 	}
-	if err := mb.RemoveItem(itemId, num, player); err != nil {
+	if err := mb.RemoveItem(itemId, num); err != nil {
 		fmt.Println(err)
 		return
 	}
-	mb.AddItem(CookBook.Reward, num, player)
+	mb.AddItem(CookBook.Reward, num)
+}
+
+// LoadData
+// @Description: 当前所有模块中最重要的背包模块的LoadData,
+//粗糙处理，暂时使用json格式与数据库交互
+// @receiver mb
+func (mb *ModBag) LoadData() {
+	pid, err := mb.player.Conn.GetProperty("PID")
+	uid := pid.(int) + 100000000
+	if err != nil {
+		mb.player.SendStringMsg(800, "意外错误，请重新输入id")
+	}
+	var test DBModBag
+	if errors.Is(DB.GormDB.First(&test, "user_id", uid).Error, gorm.ErrRecordNotFound) {
+		//fmt.Println(DB.GormDB.Find(&test, "user_id", uid).Error)
+		fmt.Println("No Icon map, create new record")
+		content, _ := json.Marshal(mb)
+		tmp := DBModBag{
+			UserId:   uid,
+			JsonData: content,
+		}
+		DB.GormDB.Create(&tmp)
+	} else {
+		configFile := test.JsonData
+		err = json.Unmarshal(configFile, &mb)
+		if err != nil {
+			fmt.Println("Bag json empty")
+			return
+		}
+	}
+}
+
+// SaveData
+// @Description: 同IconMod，可能有问题
+// @receiver mb
+func (mb *ModBag) SaveData() {
+	uid, _ := mb.player.GetUserID()
+	uid += 100000000
+	content, _ := json.Marshal(mb)
+	var test DBModBag
+	DB.GormDB.Find(&test, "user_id", uid)
+	test.JsonData = content
+	DB.GormDB.Save(test)
+}
+
+func (mb *ModBag) init(player *Player) {
+	mb.player = player
+	mb.BagInfo = make(map[int]*ItemInfo)
 }

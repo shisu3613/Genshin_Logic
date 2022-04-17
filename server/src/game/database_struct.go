@@ -37,12 +37,18 @@ type DBIcon struct {
 	IconMapData datatypes.JSON
 }
 
+type DBModBag struct {
+	gorm.Model
+	UserId   int `gorm:"index"`
+	JsonData datatypes.JSON
+}
+
 func (DBPlayer) TableName() string {
 	return "BasicProfiles"
 }
 
 func init() {
-	err := DB.GormDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(&DBPlayer{}, &Cards{}, &ShowRole{}, &DBIcon{})
+	err := DB.GormDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(&DBPlayer{}, &Cards{}, &ShowRole{}, &DBIcon{}, &DBModBag{})
 	if err != nil {
 		fmt.Println("AutoMigrate error!!!:", err)
 

@@ -30,7 +30,7 @@ func (hb *HandlerBagAddItem) Handler(request ziface.IRequest) {
 	_ = json.Unmarshal(request.GetData(), &scanRes)
 	//fmt.Println(scanRes)
 	player.SendStringMsg(0, utils.CaptureOutput(func() {
-		player.ModBag.AddItem(scanRes.ItemId, int64(scanRes.ItemNum), player)
+		player.AddBagItem(scanRes.ItemId, int64(scanRes.ItemNum))
 	}))
 	//utils.CaptureOutput(func() {
 	//	player.ModBag.AddItem(scanRes.ItemId, int64(scanRes.ItemNum), player)

@@ -38,8 +38,11 @@ func (pr *PlayerRouter) Handler(request ziface.IRequest) {
 	case 3:
 		player.SendStringMsg(33, "请输出抽卡次数:")
 	case 4:
-		player.HandleWishUp()
+		player.SendStringMsg(6, "您现在在抽卡界面 按0返回 按1祈愿1次 按2祈愿10次 按3查询抽卡信息")
+		//player.HandleWishUp()
 	case 5:
 		player.HandleMap()
+	default:
+		player.SendStringMsg(2, "欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
 	}
 }

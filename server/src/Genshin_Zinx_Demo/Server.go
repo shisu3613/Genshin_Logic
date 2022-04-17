@@ -130,6 +130,7 @@ func main() {
 	s.AddRouter(205, &api.HandlerBag{})
 	s.AddRouter(251, &api.HandlerBagAddItem{})
 	s.AddRouter(233, &api.HandlerWishesTest{})
+	s.AddRouter(206, &api.HandlerWishes{})
 	//注册Hook函数
 	s.SetOnConnStart(DoConnectionBegin)
 	s.SetOnConnStop(DoConnectionLost)

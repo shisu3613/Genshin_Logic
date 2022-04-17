@@ -211,13 +211,13 @@ func (wish *ModWish) DoPool(times int, player *Player) {
 					wish.UPWishPool.FourStarTimes = 0
 				}
 			}
-			player.ModBag.AddItemToBag(config.Result, 1)
+			player.GetMod(BagMod).(*ModBag).AddItem(config.Result, 1)
 			result[config.Result]++
 		}
 	}
 	FiveStar, FourStarRole, FourStarWeapon, ThreeStar := 0, 0, 0, 0
 	for k, v := range result {
-		fmt.Printf("抽中%s次数：%d\n", csvs.GetItemName(k), v)
+		//fmt.Printf("抽中%s次数：%d\n", csvs.GetItemName(k), v)
 		if csvs.GetItemConfig(k).SortType == csvs.ItemTypeRole {
 			if csvs.GetRoleConfig(k).Star == 4 {
 				FourStarRole += v

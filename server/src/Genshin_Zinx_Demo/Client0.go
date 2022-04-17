@@ -71,7 +71,6 @@ func (client *TcpClient) start() {
 			}
 		}
 	}()
-
 	select {}
 }
 
@@ -106,6 +105,8 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 		fmt.Println("物品数量")
 		fmt.Scan(&scanRes.ItemNum)
 		msgJson.MsgMgrObj.SendMsg(msg.Id+200, scanRes, client.conn)
+	//case 4294967295:
+	//	_ = client.conn.Close()
 
 	default: //输入数字的情况
 		client.PrintMsg(msg)
@@ -124,33 +125,6 @@ func (client *TcpClient) PrintMsg(msg *znet.Message) {
 	_ = json.Unmarshal(msg.Data, &response)
 	fmt.Println(response)
 }
-
-//func (client *TcpClient) StartLogic() {
-//	for {
-//		fmt.Println("欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
-//		var modChoose int
-//		_, err := fmt.Scan(&modChoose)
-//		if err != nil {
-//			fmt.Println("Scan error!")
-//			return
-//		}
-//		msgJson.MsgMgrObj.SendMsg(201, modChoose, client.conn)
-//		<-client.BackToMainLogic
-//		//switch modChoose {
-//		//case 1:
-//		//	msgJson.MsgMgrObj.SendMsg(201, 1, client.conn)
-//		//case 2:
-//		//	msgJson.MsgMgrObj.SendMsg(201, 2, client.conn)
-//		//case 3:
-//		//	msgJson.MsgMgrObj.SendMsg(201, 3, client.conn)
-//		//case 4:
-//		//	msgJson.MsgMgrObj.SendMsg(201, 4, client.conn)
-//		//case 5:
-//		//	msgJson.MsgMgrObj.SendMsg(201, 5, client.conn)
-//		//}
-//		//fmt.Println(pr.ModPlayer.Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘）5.地图")
-//	}
-//}
 
 func main() {
 	//Client := NewTcpClient("116.62.193.144", 8999)
