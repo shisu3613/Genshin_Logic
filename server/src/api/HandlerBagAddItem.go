@@ -36,6 +36,6 @@ func (hb *HandlerBagAddItem) Handler(request ziface.IRequest) {
 	//	player.ModBag.AddItem(scanRes.ItemId, int64(scanRes.ItemNum), player)
 	//})
 	//player.ModBag.AddItem(scanRes.ItemId, int64(scanRes.ItemNum), player)
-	player.SendStringMsg(5, "当前处于背包界面,请选择操作：0返回1增加物品2扣除物品3使用物品")
+	player.SendStringMsg(5, game.BagLogicStr)
 
 }

@@ -25,14 +25,14 @@ func (hb *HandlerBag) Handler(request ziface.IRequest) {
 	_ = json.Unmarshal(request.GetData(), &modChoose)
 	switch modChoose {
 	case 0: //返回操作
-		player.SendStringMsg(2, player.GetMod(game.ModPlay).(*game.ModPlayer).Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+		player.SendStringMsg(2, player.GetMod(game.ModPlay).(*game.ModPlayer).Name+game.MainLogicStr)
 		goto END
 	case 1:
 		//增加物品模块
 		player.SendStringMsg(51, "")
 		//player.SendStringMsg(5, "当前处于背包界面,请选择操作：0返回1增加物品2扣除物品3使用物品")
 	default:
-		player.SendStringMsg(5, "当前处于背包界面,请选择操作：0返回1增加物品2扣除物品3使用物品")
+		player.SendStringMsg(5, game.BagLogicStr)
 	}
 END:
 }

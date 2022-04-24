@@ -273,7 +273,7 @@ func (mp *ModPlayer) LoadData() {
 		mp.player.SyncPid()
 		//将玩家加入世界管理器中
 		WorldMgrObj.AddPlayer(mp.player)
-		mp.player.SendStringMsg(2, mp.Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+		mp.player.SendStringMsg(2, mp.Name+MainLogicStr)
 	}
 }
 

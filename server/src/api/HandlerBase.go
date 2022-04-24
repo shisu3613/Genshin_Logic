@@ -25,13 +25,13 @@ func (hb *HandlerBase) Handler(request ziface.IRequest) {
 	_ = json.Unmarshal(request.GetData(), &msgChoice)
 	switch msgChoice {
 	case 0:
-		player.SendStringMsg(2, player.GetMod(game.ModPlay).(*game.ModPlayer).Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+		player.SendStringMsg(2, player.GetUserName()+game.MainLogicStr)
 		goto END
 	case 1:
 		//player.HandleBaseRemote(request)
 		//HandleBaseGetInfo
 		player.SendStringMsg(0, player.HandleBaseGetInfoServer())
-		player.SendStringMsg(3, "当前处于基础信息界面,请选择操作：0返回1查询信息2设置名字3设置签名4头像5名片6设置生日")
+		player.SendStringMsg(3, game.BasicLogicStr)
 	case 2:
 		//设置名字
 		player.SendStringMsg(4, "请输入名字:")
@@ -42,6 +42,6 @@ func (hb *HandlerBase) Handler(request ziface.IRequest) {
 	case 5:
 		player.HandleMap()
 	}
-	//player.SendStringMsg(3, "当前处于基础信息界面,请选择操作：0返回1查询信息2设置名字3设置签名4头像5名片6设置生日")
+	//player.SendStringMsg(3, game.BasicLogicStr)
 END:
 }

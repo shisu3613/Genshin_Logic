@@ -155,7 +155,7 @@ func (pr *Player) CreateRoleInDB() {
 	//将玩家加入世界管理器中
 	pr.LoadElse()
 	WorldMgrObj.AddPlayer(pr)
-	pr.SendStringMsg(2, pr.GetMod(ModPlay).(*ModPlayer).Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+	pr.SendStringMsg(2, pr.GetUserName()+MainLogicStr)
 }
 
 // initMod
@@ -184,6 +184,13 @@ func (pr *Player) GetUserID() (int, error) {
 		return -1, err
 	}
 	return uid.(int), nil
+}
+
+// GetUserName
+// @Description 获取用户姓名
+// @Author WangYuding 2022-04-05 18:28:32
+func (pr *Player) GetUserName() string {
+	return pr.GetMod(ModPlay).(*ModPlayer).Name
 }
 
 func (pr *Player) GetMod(Name string) ModBase {
@@ -268,7 +275,7 @@ func (pr *Player) Run() {
 	fmt.Println("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓")
 	//fmt.Println(pr.GetMod(ModPlay).(*ModPlayer).Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
 	for {
-		fmt.Println(pr.GetMod(ModPlay).(*ModPlayer).Name, ",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+		fmt.Println(pr.GetUserName() + MainLogicStr)
 		var modChoose int
 		_, err := fmt.Scan(&modChoose)
 		if err != nil {
@@ -294,7 +301,7 @@ func (pr *Player) Run() {
 // HandleBase 基础信息，测试模块
 func (pr *Player) HandleBase() {
 	for {
-		fmt.Println("当前处于基础信息界面,请选择操作：0返回1查询信息2设置名字3设置签名4头像5名片6设置生日")
+		fmt.Println(BasicLogicStr)
 		var action int
 		_, _ = fmt.Scan(&action)
 		switch action {

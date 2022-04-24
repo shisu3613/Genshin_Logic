@@ -70,7 +70,7 @@ func DoConnectionBegin(conn ziface.IConnection) {
 		log.Println(err)
 		return
 	}
-	if err := conn.SendMsg(800, data); err != nil {
+	if err = conn.SendMsg(800, data); err != nil {
 		fmt.Println("Player SendMsg error !")
 		return
 	}

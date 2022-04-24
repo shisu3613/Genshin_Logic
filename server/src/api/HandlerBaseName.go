@@ -28,6 +28,6 @@ func (hb *HandlerBaseName) Handler(request ziface.IRequest) {
 	player.SendStringMsg(0, utils.CaptureOutput(func() {
 		player.RecvSetName(msgChoice)
 	}))
-	player.SendStringMsg(3, "当前处于基础信息界面,请选择操作：0返回1查询信息2设置名字3设置签名4头像5名片6设置生日")
+	player.SendStringMsg(3, game.BasicLogicStr)
 
 }

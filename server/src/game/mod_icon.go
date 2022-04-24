@@ -84,7 +84,7 @@ func (self *ModIcon) LoadData() {
 	} else {
 		configFile := test.IconMapData
 		err = json.Unmarshal(configFile, &self)
-		println("test Icon Result:", self.player.Conn.GetConnID())
+		//println("test Icon Result:", self.player.Conn.GetConnID())
 		// @Modified By WangYuding 2022/4/9 22:24:00
 		// @Modified description 一个奇怪的bug，来自于数据库没有迁移好，所以加了个err判断
 		if err != nil {

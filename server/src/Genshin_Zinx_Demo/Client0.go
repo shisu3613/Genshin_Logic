@@ -5,15 +5,19 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
+	"os/signal"
 	"server/msgJson"
 	"server/zinx/znet"
+	"sync"
 )
 
 type TcpClient struct {
 	conn            net.Conn
 	PID             int
 	isOnline        chan bool
-	BackToMainLogic chan struct{}
+	closeClientChan chan struct{}
+	closedWg        sync.WaitGroup
 }
 
 // Message msg结构
@@ -32,10 +36,12 @@ func NewTcpClient(ip string, port int) *TcpClient {
 	}
 
 	client := &TcpClient{
-		conn:            conn,
-		PID:             0,
+		conn: conn,
+		PID:  0,
+		// @Modified By WangYuding 2022/4/24 17:13:00
+		// @Modified description 添加isOnline做一下go的聊天室
 		isOnline:        make(chan bool),
-		BackToMainLogic: make(chan struct{}),
+		closeClientChan: make(chan struct{}),
 	}
 	return client
 }
@@ -71,9 +77,44 @@ func (client *TcpClient) start() {
 			}
 		}
 	}()
-	select {}
+
+	//  客户端关闭的部分逻辑
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt)
+	client.closedWg.Add(1)
+	//go func() {defer client.closedWg.Done();}()
+	select {
+	case sig := <-c:
+		fmt.Printf("Got %s signal. Aborting...\n", sig)
+		client.stop()
+	case <-client.closeClientChan:
+		client.exitHandler()
+		client.closedWg.Done()
+	}
+	client.closedWg.Wait()
 }
 
+// stop
+// @Description: 客户端关闭
+// @receiver client
+func (client *TcpClient) stop() {
+	defer client.closedWg.Done()
+	close(client.closeClientChan)
+	client.exitHandler()
+}
+
+func (client *TcpClient) exitHandler() {
+	fmt.Println("Closing connection.....")
+	err := client.conn.Close()
+	if err != nil {
+		panic("关闭链接失败")
+	}
+}
+
+// DoMsg
+// @Description: 分析处理收到的msg
+// @receiver client
+// @param msg
 func (client *TcpClient) DoMsg(msg *znet.Message) {
 	switch msg.Id {
 	case 0:
@@ -114,6 +155,12 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 		_, err := fmt.Scan(&modChoose)
 		if err != nil {
 			fmt.Println("Scan error!")
+			return
+		}
+		// @Modified By WangYuding 2022/4/24 22:51:00
+		// @Modified description 增加本地关于退出客户端的判断
+		if msg.Id == 2 && modChoose == 6 {
+			close(client.closeClientChan)
 			return
 		}
 		msgJson.MsgMgrObj.SendMsg(msg.Id+200, modChoose, client.conn)
