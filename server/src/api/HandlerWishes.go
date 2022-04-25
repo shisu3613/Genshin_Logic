@@ -35,33 +35,43 @@ func (hb *HandlerWishes) Handler(request ziface.IRequest) {
 		player.SendStringMsg(2, player.GetUserName()+game.MainLogicStr)
 		goto END
 	case 1:
-		player.SendStringMsg(0, "如果祈愿之缘数量不足，请通过背包功能增加祈愿之缘，物品id为1000005")
+		// @Modified By WangYuding 2022/4/25 19:11:00
+		// @Modified description 重构这部分的逻辑以防止由于网络问题导致的信息错位
+		outputStr := ""
+
+		player.SendStringMsg(0, game.WishHint)
 		if err = player.GetMod(game.BagMod).(*game.ModBag).RemoveItem(1000005, 1); err != nil {
-			player.SendStringMsg(0, fmt.Sprint(err))
+			//player.SendStringMsg(0, fmt.Sprint(err))
+			outputStr += fmt.Sprintln(err)
 		} else {
-			player.SendStringMsg(0, utils.CaptureOutput(func() {
-				player.ModWish.DoPool(1, player)
-			}))
+			//player.SendStringMsg(0, utils.CaptureOutput(func() {
+			//	player.ModWish.DoPool(1, player)
+			//}))
+			outputStr += utils.CaptureOutput(func() { player.ModWish.DoPool(1, player) }) + "\n"
 		}
-		player.SendStringMsg(6, "您现在在抽卡界面 按0返回 按1祈愿1次 按2祈愿10次 按3查询抽卡信息")
+		player.SendStringMsg(6, outputStr+game.WishLogicStr)
 		goto END
 	case 2:
-		player.SendStringMsg(0, "如果祈愿之缘数量不足，请通过背包功能增加祈愿之缘，物品id为1000005")
+		outputStr := ""
+
+		player.SendStringMsg(0, game.WishHint)
 		if err = player.GetMod(game.BagMod).(*game.ModBag).RemoveItem(1000005, 10); err != nil {
-			player.SendStringMsg(0, fmt.Sprint(err))
+			//player.SendStringMsg(0, fmt.Sprint(err))
+			outputStr += fmt.Sprintln(err)
 		} else {
-			player.SendStringMsg(0, utils.CaptureOutput(func() {
-				player.ModWish.DoPool(10, player)
-			}))
+			//player.SendStringMsg(0, utils.CaptureOutput(func() {
+			//	player.ModWish.DoPool(1, player)
+			//}))
+			outputStr += utils.CaptureOutput(func() { player.ModWish.DoPool(10, player) }) + "\n"
 		}
-		player.SendStringMsg(6, "您现在在抽卡界面 按0返回 按1祈愿1次 按2祈愿10次 按3查询抽卡信息")
+		player.SendStringMsg(6, outputStr+game.WishLogicStr)
 		goto END
 	case 3:
-		player.SendStringMsg(0, player.WishHelper())
-		player.SendStringMsg(6, "您现在在抽卡界面 按0返回 按1祈愿1次 按2祈愿10次 按3查询抽卡信息")
+		//player.SendStringMsg(0, player.WishHelper())
+		player.SendStringMsg(6, player.WishHelper()+"\n"+game.WishLogicStr)
 		goto END
 	default:
-		player.SendStringMsg(6, "您现在在抽卡界面 按0返回 按1祈愿1次 按2祈愿10次 按3查询抽卡信息")
+		player.SendStringMsg(6, game.WishLogicStr)
 
 	}
 END:

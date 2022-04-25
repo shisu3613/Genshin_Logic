@@ -42,6 +42,8 @@ func (pr *PlayerRouter) Handler(request ziface.IRequest) {
 		//player.HandleWishUp()
 	case 5:
 		player.HandleMap()
+	case 7:
+		player.SendStringMsg(9, game.WorldChatStr)
 	default:
 		player.SendStringMsg(2, player.GetUserName()+game.MainLogicStr)
 	}

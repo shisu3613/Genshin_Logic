@@ -1,11 +1,9 @@
 package game
 
 import (
-	"fmt"
 	//"github.com/jinzhu/gorm"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	DB "server/DB/GORM"
 )
 
 type DBPlayer struct {
@@ -47,11 +45,11 @@ func (DBPlayer) TableName() string {
 	return "BasicProfiles"
 }
 
-func init() {
-	err := DB.GormDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(&DBPlayer{}, &Cards{}, &ShowRole{}, &DBIcon{}, &DBModBag{})
-	if err != nil {
-		fmt.Println("AutoMigrate error!!!:", err)
-
-		return
-	}
-}
+//func init() {
+//	err := DB.GormDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(&DBPlayer{}, &Cards{}, &ShowRole{}, &DBIcon{}, &DBModBag{})
+//	if err != nil {
+//		fmt.Println("AutoMigrate error!!!:", err)
+//
+//		return
+//	}
+//}

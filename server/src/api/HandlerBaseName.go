@@ -25,9 +25,12 @@ func (hb *HandlerBaseName) Handler(request ziface.IRequest) {
 	var msgChoice string
 	_ = json.Unmarshal(request.GetData(), &msgChoice)
 	//player.RecvSetName(msgChoice)
-	player.SendStringMsg(0, utils.CaptureOutput(func() {
+	//player.SendStringMsg(0, utils.CaptureOutput(func() {
+	//	player.RecvSetName(msgChoice)
+	//}))
+	outputString := utils.CaptureOutput(func() {
 		player.RecvSetName(msgChoice)
-	}))
-	player.SendStringMsg(3, game.BasicLogicStr)
+	})
+	player.SendStringMsg(3, outputString+"\n"+game.BasicLogicStr)
 
 }

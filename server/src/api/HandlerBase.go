@@ -30,8 +30,10 @@ func (hb *HandlerBase) Handler(request ziface.IRequest) {
 	case 1:
 		//player.HandleBaseRemote(request)
 		//HandleBaseGetInfo
-		player.SendStringMsg(0, player.HandleBaseGetInfoServer())
-		player.SendStringMsg(3, game.BasicLogicStr)
+		//player.SendStringMsg(0, player.HandleBaseGetInfoServer())
+		// @Modified By WangYuding 2022/4/25 19:06:00
+		// @Modified description 将msg0部分合并到下面以方便多线程处理信息的使用
+		player.SendStringMsg(3, player.HandleBaseGetInfoServer()+"\n"+game.BasicLogicStr)
 	case 2:
 		//设置名字
 		player.SendStringMsg(4, "请输入名字:")

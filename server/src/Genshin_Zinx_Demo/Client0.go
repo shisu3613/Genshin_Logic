@@ -15,7 +15,7 @@ import (
 type TcpClient struct {
 	conn            net.Conn
 	PID             int
-	isOnline        chan bool
+	OnlineMsg       map[int]string
 	closeClientChan chan struct{}
 	closedWg        sync.WaitGroup
 }
@@ -39,14 +39,19 @@ func NewTcpClient(ip string, port int) *TcpClient {
 		conn: conn,
 		PID:  0,
 		// @Modified By WangYuding 2022/4/24 17:13:00
-		// @Modified description 添加isOnline做一下go的聊天室
-		isOnline:        make(chan bool),
+		// @Modified description 添加OnlineMsg做一下go的聊天室，缓存聊天信息
+		OnlineMsg:       make(map[int]string),
 		closeClientChan: make(chan struct{}),
 	}
 	return client
 }
 
 func (client *TcpClient) start() {
+
+	//  客户端关闭的部分逻辑
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt)
+	client.closedWg.Add(1)
 	//保持接收信息
 	go func() {
 		for {
@@ -57,7 +62,6 @@ func (client *TcpClient) start() {
 				fmt.Println("Read Head Error:", err)
 				break
 			}
-
 			//先读取流中的head部分得到ID鹤datalen,再根据datalen
 			msgHead, err := dp.Unpack(binaryHead)
 			//fmt.Println(msgHead.GetMsgLen())
@@ -73,15 +77,13 @@ func (client *TcpClient) start() {
 					break
 				}
 				//fmt.Println("————————>Recv Server Msg : ID =", msg.Id, ",Len = ", msg.DataLen, ",data = ", string(msg.Data))
-				client.DoMsg(msg)
+				// @Modified By WangYuding 2022/4/25 17:13:00
+				// @Modified description 合格的客户端可以同时接收处理多条消息，特别是聊天模块
+				go client.DoMsg(msg)
 			}
 		}
 	}()
 
-	//  客户端关闭的部分逻辑
-	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt)
-	client.closedWg.Add(1)
 	//go func() {defer client.closedWg.Done();}()
 	select {
 	case sig := <-c:
@@ -118,15 +120,17 @@ func (client *TcpClient) exitHandler() {
 func (client *TcpClient) DoMsg(msg *znet.Message) {
 	switch msg.Id {
 	case 0:
-		//打印返回信息
+		//case0 打印返回信息
 		client.PrintMsg(msg)
 	case 1:
+		//case1 同步服务器
 		sycnID := new(msgJson.SyncPID)
 		_ = json.Unmarshal(msg.Data, sycnID)
 		client.PID = sycnID.PID
 		fmt.Println("用户连接成功OK------当前UID为：", client.PID)
 		fmt.Println("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓")
-	case 4: //需要输入string的情况
+	case 4:
+		//case ：姓名等需要输入string的情况
 		client.PrintMsg(msg)
 		var modChoose string
 		_, err := fmt.Scan(&modChoose)
@@ -136,6 +140,7 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 		}
 		msgJson.MsgMgrObj.SendMsg(msg.Id+200, modChoose, client.conn)
 	case 51: //增加物品的模块
+		//case51:特殊模块：addItem需要输入两个值
 		type pair struct {
 			ItemId  int
 			ItemNum int
@@ -148,6 +153,9 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 		msgJson.MsgMgrObj.SendMsg(msg.Id+200, scanRes, client.conn)
 	//case 4294967295:
 	//	_ = client.conn.Close()
+	//聊天部分的信息处理：
+	case 9:
+		//发送信息
 
 	default: //输入数字的情况
 		client.PrintMsg(msg)

@@ -41,3 +41,20 @@ func (wm *WorldManager) GetPlayerByPID(pID int) *Player {
 
 	return wm.Players[pID]
 }
+
+// GetAllPlayers 获取所有玩家的信息
+func (wm *WorldManager) GetAllPlayers() []*Player {
+	wm.pLock.RLock()
+	defer wm.pLock.RUnlock()
+
+	//创建返回的player集合切片
+	players := make([]*Player, 0)
+
+	//添加切片
+	for _, v := range wm.Players {
+		players = append(players, v)
+	}
+
+	//返回
+	return players
+}

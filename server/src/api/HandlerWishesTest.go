@@ -23,6 +23,6 @@ func (hb *HandlerWishesTest) Handler(request ziface.IRequest) {
 	player := game.WorldMgrObj.GetPlayerByPID(UserID.(int))
 	var times int
 	_ = json.Unmarshal(request.GetData(), &times)
-	player.SendStringMsg(0, player.ModWish.DoPoolTest(times))
-	player.SendStringMsg(2, player.GetUserName()+game.MainLogicStr)
+	//player.SendStringMsg(0, player.ModWish.DoPoolTest(times))
+	player.SendStringMsg(2, player.ModWish.DoPoolTest(times)+"\n"+player.GetUserName()+game.MainLogicStr)
 }
