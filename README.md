@@ -9,3 +9,7 @@
 
 目前进度。更改聊天室模块中，打算改的和原神系统中的更像一点，顺便学习点新的技术。
 
+目前思路思维导图版本：
+
+
+![golang服务器框架](https://user-images.githubusercontent.com/48946918/165117360-ce90d2f2-7e02-4bb3-9b8f-f917e83346b2.svg)
