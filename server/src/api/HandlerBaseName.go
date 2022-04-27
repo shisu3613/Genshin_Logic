@@ -14,14 +14,14 @@ type HandlerBaseName struct {
 }
 
 func (hb *HandlerBaseName) Handler(request ziface.IRequest) {
-	UserID, err := request.GetConnection().GetProperty("PID")
+	PID, err := request.GetConnection().GetProperty("PID")
 	if err != nil {
 		fmt.Println("GetProperty pID error", err)
 		request.GetConnection().Stop()
 		return
 	}
 	//根据pID得到player对象
-	player := game.WorldMgrObj.GetPlayerByPID(UserID.(int))
+	player := game.WorldMgrObj.GetPlayerByPID(PID.(int))
 	var msgChoice string
 	_ = json.Unmarshal(request.GetData(), &msgChoice)
 	//player.RecvSetName(msgChoice)

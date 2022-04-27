@@ -20,14 +20,14 @@ type HandlerWishes struct {
 }
 
 func (hb *HandlerWishes) Handler(request ziface.IRequest) {
-	UserID, err := request.GetConnection().GetProperty("PID")
+	PID, err := request.GetConnection().GetProperty("PID")
 	if err != nil {
 		fmt.Println("GetProperty pID error", err)
 		request.GetConnection().Stop()
 		return
 	}
 	//根据pID得到player对象
-	player := game.WorldMgrObj.GetPlayerByPID(UserID.(int))
+	player := game.WorldMgrObj.GetPlayerByPID(PID.(int))
 	var modChoose int
 	_ = json.Unmarshal(request.GetData(), &modChoose)
 	switch modChoose {
