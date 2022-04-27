@@ -14,8 +14,8 @@ type GlobalMsgManager struct {
 	//MsgStruct map[uint32]interface{}
 }
 
-type SyncPID struct {
-	PID int `json:"PID"`
+type SyncUID struct {
+	UID int `json:"UID"`
 }
 
 type SyncContent struct {

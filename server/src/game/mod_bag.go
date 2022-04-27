@@ -240,8 +240,7 @@ func (mb *ModBag) LoadData() {
 // @Description: 同IconMod，可能有问题
 // @receiver mb
 func (mb *ModBag) SaveData() {
-	uid, _ := mb.player.GetUserID()
-	uid += 100000000
+	uid := mb.player.GetUserID()
 	content, _ := json.Marshal(mb)
 	var test DBModBag
 	DB.GormDB.Find(&test, "user_id", uid)

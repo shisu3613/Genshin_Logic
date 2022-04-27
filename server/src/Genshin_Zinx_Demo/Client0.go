@@ -14,7 +14,7 @@ import (
 
 type TcpClient struct {
 	conn            net.Conn
-	PID             int
+	UID             int
 	OnlineMsg       map[int]string
 	closeClientChan chan struct{}
 	closedWg        sync.WaitGroup
@@ -37,7 +37,7 @@ func NewTcpClient(ip string, port int) *TcpClient {
 
 	client := &TcpClient{
 		conn: conn,
-		PID:  0,
+		UID:  0,
 		// @Modified By WangYuding 2022/4/24 17:13:00
 		// @Modified description 添加OnlineMsg做一下go的聊天室，缓存聊天信息
 		OnlineMsg:       make(map[int]string),
@@ -124,10 +124,10 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 		client.PrintMsg(msg)
 	case 1:
 		//case1 同步服务器
-		sycnID := new(msgJson.SyncPID)
+		sycnID := new(msgJson.SyncUID)
 		_ = json.Unmarshal(msg.Data, sycnID)
-		client.PID = sycnID.PID
-		fmt.Println("用户连接成功OK------当前UID为：", client.PID)
+		client.UID = sycnID.UID
+		fmt.Println("用户连接成功OK------当前UID为：", client.UID)
 		fmt.Println("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓")
 	case 4:
 		//case ：姓名等需要输入string的情况

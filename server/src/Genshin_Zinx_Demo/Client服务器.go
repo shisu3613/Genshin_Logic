@@ -11,7 +11,7 @@ import (
 
 type TcpClientServer struct {
 	conn            net.Conn
-	PID             int
+	UID             int
 	isOnline        chan bool
 	BackToMainLogic chan struct{}
 }
@@ -33,7 +33,7 @@ func NewTcpClientSever(ip string, port int) *TcpClientServer {
 
 	client := &TcpClientServer{
 		conn:            conn,
-		PID:             0,
+		UID:             0,
 		isOnline:        make(chan bool),
 		BackToMainLogic: make(chan struct{}),
 	}
@@ -81,9 +81,9 @@ func (client *TcpClientServer) DoMsg(msg *znet.Message) {
 		//打印返回信息
 		client.PrintMsg(msg)
 	case 1:
-		sycnID := new(msgJson.SyncPID)
+		sycnID := new(msgJson.SyncUID)
 		_ = json.Unmarshal(msg.Data, sycnID)
-		client.PID = sycnID.PID
+		client.UID = sycnID.UID
 		fmt.Println("模拟用户创建成功OK------开始测试")
 		fmt.Println("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓")
 	case 4: //需要输入string的情况

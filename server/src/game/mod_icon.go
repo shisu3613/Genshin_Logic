@@ -55,8 +55,7 @@ func (self *ModIcon) SaveData() {
 	//if err != nil {
 	//	self.player.SendStringMsg(800, "意外错误，请重新输入id")
 	//}
-	uid, _ := self.player.GetUserID()
-	uid += 100000000
+	uid := self.player.GetUserID()
 	content, _ := json.Marshal(self)
 	var test DBIcon
 	DB.GormDB.Find(&test, "user_id", uid)

@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	//"github.com/jinzhu/gorm"
 	"log"
 	"math/rand"
 	"server/api"

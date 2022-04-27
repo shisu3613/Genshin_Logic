@@ -16,16 +16,14 @@ type PlayerRouter struct {
 func (pr *PlayerRouter) Handler(request ziface.IRequest) {
 	//这里是主界面的选择程序
 	//找到对应的player
-	UserID, err := request.GetConnection().GetProperty("PID")
+	PID, err := request.GetConnection().GetProperty("PID")
 	if err != nil {
 		fmt.Println("GetProperty pID error", err)
 		request.GetConnection().Stop()
 		return
 	}
 	//根据pID得到player对象
-	player := game.WorldMgrObj.GetPlayerByPID(UserID.(int))
-	//player.SendStringMsg(2, "欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
-	//player.SendStringMsg(2,"欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
+	player := game.WorldMgrObj.GetPlayerByPID(PID.(int))
 
 	var msgChoice int
 	_ = json.Unmarshal(request.GetData(), &msgChoice)

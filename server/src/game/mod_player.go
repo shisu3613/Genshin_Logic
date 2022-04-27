@@ -270,7 +270,7 @@ func (mp *ModPlayer) LoadData() {
 	} else {
 		//conn.SetProperty("PID", player.ModPlayer.UserId)
 		mp.player.LoadElse()
-		mp.player.SyncPid()
+		mp.player.SyncUid()
 		//将玩家加入世界管理器中
 		WorldMgrObj.AddPlayer(mp.player)
 		mp.player.SendStringMsg(2, mp.Name+MainLogicStr)

@@ -151,7 +151,7 @@ func (pr *Player) CreateRoleInDB() {
 	//fmt.Println(player.ModPlayer.DBPlayer.ID)
 	//告知客户端pID,同步已经生成的玩家ID给客户端
 	DB.GormDB.Model(&pr.GetMod(ModPlay).(*ModPlayer).DBPlayer).Update("user_id", pr.GetMod(ModPlay).(*ModPlayer).DBPlayer.ID+100000000)
-	pr.SyncPid()
+	pr.SyncUid()
 	pr.Conn.SetProperty("PID", pr.GetMod(ModPlay).(*ModPlayer).UserId)
 
 	//将玩家加入世界管理器中
@@ -180,12 +180,8 @@ func (pr *Player) GetModManager() map[string]ModBase {
 // GetUserID
 // @Description 从当前Conn中获取uid
 // @Author WangYuding 2022-04-05 18:28:32
-func (pr *Player) GetUserID() (int, error) {
-	uid, err := pr.Conn.GetProperty("PID")
-	if err != nil {
-		return -1, err
-	}
-	return uid.(int), nil
+func (pr *Player) GetUserID() int {
+	return pr.GetMod(ModPlay).(*ModPlayer).UserId
 }
 
 // GetUserName
@@ -199,11 +195,10 @@ func (pr *Player) GetMod(Name string) ModBase {
 	return pr.modManage[Name]
 }
 
-// SyncPid 告知客户端pID,同步已经生成的玩家ID给客户端
-func (pr *Player) SyncPid() {
-	log.Println("SyncPid")
-
-	pidMsg := msgJson.SyncPID{PID: pr.GetMod(ModPlay).(*ModPlayer).UserId}
+// SyncUid 告知客户端pID,同步已经生成的玩家ID给客户端
+func (pr *Player) SyncUid() {
+	log.Println("SyncUid")
+	pidMsg := msgJson.SyncUID{UID: pr.GetMod(ModPlay).(*ModPlayer).UserId}
 	data, err := json.Marshal(pidMsg) //
 	if err != nil {
 		log.Println(err)

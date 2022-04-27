@@ -22,8 +22,11 @@ func init() {
 func (wm *WorldManager) AddPlayer(player *Player) {
 	//将player添加到 世界管理器中
 	wm.pLock.Lock()
-	UserID, _ := player.GetUserID()
-	wm.Players[UserID] = player
+	PID, err := player.Conn.GetProperty("PID")
+	if err != nil {
+		return
+	}
+	wm.Players[PID.(int)] = player
 	wm.pLock.Unlock()
 }
 
@@ -34,7 +37,7 @@ func (wm *WorldManager) RemovePlayerByPID(pID int) {
 	wm.pLock.Unlock()
 }
 
-// GetPlayerByPID 通过玩家ID 获取对应玩家信息
+// GetPlayerByPID 通过PID 获取对应玩家信息
 func (wm *WorldManager) GetPlayerByPID(pID int) *Player {
 	wm.pLock.RLock()
 	defer wm.pLock.RUnlock()

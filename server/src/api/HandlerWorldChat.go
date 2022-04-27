@@ -22,14 +22,15 @@ type HandlerWorldChat struct {
 
 func (hw *HandlerWorldChat) Handler(request ziface.IRequest) {
 	// 第一步根据uid 获得player对象
-	UserID, err := request.GetConnection().GetProperty("PID")
+	PID, err := request.GetConnection().GetProperty("PID")
 	if err != nil {
 		fmt.Println("GetProperty pID error", err)
 		request.GetConnection().Stop()
 		return
 	}
 	//根据pID得到player对象
-	player := game.WorldMgrObj.GetPlayerByPID(UserID.(int))
+	//log.Println("UserID is:" + strconv.Itoa(UserID.(int)))
+	player := game.WorldMgrObj.GetPlayerByPID(PID.(int))
 
 	//获得聊天信息
 	var msg string
@@ -38,7 +39,7 @@ func (hw *HandlerWorldChat) Handler(request ziface.IRequest) {
 		player.SendStringMsg(2, player.GetUserName()+game.MainLogicStr)
 	} else {
 		//player轮询世界角色管理器发起广播
-		uid, _ := player.GetUserID()
+		uid := player.GetUserID()
 		newMsg := game.ChatMsg{
 			Uid:    strconv.Itoa(uid),
 			IdTime: time.Now().Format("2006-01-02 15:04:05"),
