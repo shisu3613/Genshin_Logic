@@ -30,6 +30,11 @@ func (pr *PlayerRouter) Handler(request ziface.IRequest) {
 	var msgChoice int
 	_ = json.Unmarshal(request.GetData(), &msgChoice)
 	switch msgChoice {
+	case 0:
+		// @Modified By WangYuding 2022/4/27 14:22:00
+		// @Modified description 添加逻辑，复位各种状态
+		player.GetMod(game.TalkMod).(*game.ModTalk).ResetFlag()
+		player.SendStringMsg(2, player.GetUserName()+game.MainLogicStr)
 	case 1:
 		//player.HandleBaseRemote(request)
 		player.SendStringMsg(3, game.BasicLogicStr)
@@ -43,7 +48,12 @@ func (pr *PlayerRouter) Handler(request ziface.IRequest) {
 	case 5:
 		player.HandleMap()
 	case 7:
-		player.SendStringMsg(9, game.WorldChatStr)
+		// @Modified By WangYuding 2022/4/27 14:31:00
+		// @Modified description 说明进入世界聊天状态
+		//首先是得到历史聊天的结果
+		//player.GetMod(game.TalkMod).(*game.ModTalk).GetGlobalHistory()
+		player.SendStringMsg(9, player.GetMod(game.TalkMod).(*game.ModTalk).GetGlobalHistory()+game.WorldChatStr)
+		player.GetMod(game.TalkMod).(*game.ModTalk).SetFlag()
 	default:
 		player.SendStringMsg(2, player.GetUserName()+game.MainLogicStr)
 	}

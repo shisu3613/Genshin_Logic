@@ -79,6 +79,8 @@ func (connMgr *ConnManager) Len() int {
 // ClearConn Clear 链接清理（GC机制）
 func (connMgr *ConnManager) ClearConn() {
 	//保护共享资源
+	// @Modified By WangYuding 2022/4/27 17:22:00
+	// @Modified description 死锁情况排除
 	//connMgr.connLock.Lock()
 	//defer connMgr.connLock.Unlock()
 

@@ -17,6 +17,7 @@ const (
 	ModPlay         = "player"
 	IconMod         = "icon"
 	BagMod          = "bag"
+	TalkMod         = "talk"
 )
 
 //var PIDGen int = 1    //用于生成玩家ID的计数器
@@ -134,6 +135,7 @@ func PlayerInit(player *Player) {
 		ModPlay: new(ModPlayer),
 		IconMod: new(ModIcon),
 		BagMod:  new(ModBag),
+		TalkMod: new(ModTalk),
 	}
 	player.initMod()
 

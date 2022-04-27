@@ -155,7 +155,24 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 	//	_ = client.conn.Close()
 	//聊天部分的信息处理：
 	case 9:
-		//发送信息
+		//进入聊天室界面
+		client.PrintMsg(msg)
+		//原子操作应该放到后端逻辑里面
+		for {
+			var msgStr string
+			_, err := fmt.Scan(&msgStr)
+			if err != nil {
+				fmt.Println("Scan error!")
+				return
+			}
+			if msgStr == "exit;" {
+				msgJson.MsgMgrObj.SendMsg(202, 0, client.conn)
+				break
+			} else {
+				msgJson.MsgMgrObj.SendMsg(msg.Id+200, msgStr, client.conn)
+			}
+		}
+	case 19:
 
 	default: //输入数字的情况
 		client.PrintMsg(msg)
