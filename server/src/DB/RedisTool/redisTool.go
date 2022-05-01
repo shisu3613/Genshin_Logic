@@ -2,7 +2,9 @@ package RedisTool
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/go-redis/redis/v8"
+	"io/ioutil"
 	"log"
 	"time"
 	"unsafe"
@@ -13,13 +15,25 @@ import (
     @since: 2022/4/27
     @desc: //Redis的工具库
 **/
+
+type RedisConfig struct {
+	Addr     string
+	Password string
+}
+
 var ctx = context.Background()
 
 func NewRedis(db int) *redis.Client { //将数据库连接操作打包为方法使用newRdis(0)方法带入数据库名调用即可
+	var configure *RedisConfig
+	data, err := ioutil.ReadFile("json/RedisConfig.json")
+	if err != nil {
+		panic(err)
+	}
+	err = json.Unmarshal(data, &configure)
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "127.0.0.1:6379", //数据库默认安装在开发机，监听localhost，默认端口为6379
-		Password: "123456",         // simply password set
-		DB:       db,               // use default DB
+		Addr:     configure.Addr,     //数据库默认安装在开发机，监听localhost，默认端口为6379
+		Password: configure.Password, // simply password set
+		DB:       db,                 // use default DB
 	})
 	return rdb //返回数据库客户端
 }

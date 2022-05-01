@@ -28,3 +28,4 @@
 /server/pkg/
 /server/log/
 /mac_Demo_*
+/json/RedisConfig.json

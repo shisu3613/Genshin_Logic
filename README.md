@@ -7,6 +7,28 @@
 
 项目中目前用到的数据库是mysql和redis,前者用于保存用户信息，后者用于缓存聊天信息
 
+Redis和mysql数据库的设置应放入json包里面,名字分别为“DBconfig.json” 和 “RedisConfig.json”:
+格式如下：
+
+```
+//DBconfig
+{
+  "UserName": "Genshin",
+  "DBServer": "127.0.0.1:3306",
+  "PWD"     : "123456",
+  "DBName"  : "genshin"
+}
+```
+
+```
+//RedisConfig
+{
+  "Addr"     :"127.0.0.1:6379",
+  "Password" :"123456"
+}
+```
+
+
 目前进度。更改聊天室模块中，打算改的和原神系统中的更像一点，顺便学习点新的技术。
 
 目前思路思维导图版本：
