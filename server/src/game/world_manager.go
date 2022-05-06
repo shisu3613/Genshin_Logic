@@ -61,3 +61,17 @@ func (wm *WorldManager) GetAllPlayers() []*Player {
 	//返回
 	return players
 }
+
+// GetAllPlayersUID
+// @Description: 答应所有在线用户的UID
+// @receiver wm
+// @return []int
+func (wm *WorldManager) GetAllPlayersUID() []int {
+	wm.pLock.RLock()
+	defer wm.pLock.RUnlock()
+	UIDs := make([]int, 0)
+	for _, v := range wm.Players {
+		UIDs = append(UIDs, v.GetUserID())
+	}
+	return UIDs
+}

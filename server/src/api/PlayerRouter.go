@@ -6,6 +6,8 @@ import (
 	"server/game"
 	"server/zinx/ziface"
 	"server/zinx/znet"
+	"sort"
+	"strconv"
 )
 
 type PlayerRouter struct {
@@ -45,13 +47,32 @@ func (pr *PlayerRouter) Handler(request ziface.IRequest) {
 		//player.HandleWishUp()
 	case 5:
 		player.HandleMap()
+
+	case 6: //私人聊天
+		onlinePlayersID := game.WorldMgrObj.GetAllPlayersUID()
+		sort.Ints(onlinePlayersID)
+		outputStr := "当前有如下用户在线：\n"
+		for _, x := range onlinePlayersID {
+			if x != player.GetUserID() {
+				outputStr += strconv.Itoa(x) + ";"
+			}
+		}
+		outputStr += "\n以下是曾经和您有过通话记录的UID:\n"
+		// @Modified By WangYuding 2022/5/5 22:33:00
+		// @Modified description 仿照原神，添加有过通话记录的UID
+		for k := range player.GetMod(game.TalkMod).(*game.ModTalk).PrivateChat {
+			outputStr += strconv.Itoa(k) + ";"
+		}
+		player.SendStringMsg(8, outputStr+"\n"+game.P2PChatStr)
+
 	case 7:
 		// @Modified By WangYuding 2022/4/27 14:31:00
 		// @Modified description 说明进入世界聊天状态
 		//首先是得到历史聊天的结果
-		//player.GetMod(game.TalkMod).(*game.ModTalk).GetGlobalHistory()
-		player.SendStringMsg(9, player.GetMod(game.TalkMod).(*game.ModTalk).GetGlobalHistory()+game.WorldChatStr)
-		player.GetMod(game.TalkMod).(*game.ModTalk).SetFlag()
+		player.SendStringMsg(0, player.GetMod(game.TalkMod).(*game.ModTalk).PrintGlobalHistory()+game.WorldChatStr)
+		player.SendStringMsg(9, "global")
+		player.GetMod(game.TalkMod).(*game.ModTalk).SetFlag(1)
+
 	default:
 		player.SendStringMsg(2, player.GetUserName()+game.MainLogicStr)
 	}

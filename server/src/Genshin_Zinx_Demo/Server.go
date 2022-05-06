@@ -130,6 +130,7 @@ func main() {
 	s.AddRouter(251, &api.HandlerBagAddItem{})
 	s.AddRouter(233, &api.HandlerWishesTest{})
 	s.AddRouter(206, &api.HandlerWishes{})
+	s.AddRouter(208, &api.HandlerP2PHistory{})
 	s.AddRouter(209, &api.HandlerWorldChat{})
 	//注册Hook函数
 	s.SetOnConnStart(DoConnectionBegin)

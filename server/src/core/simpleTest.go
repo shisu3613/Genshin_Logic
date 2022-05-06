@@ -1,10 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
-	"os/signal"
-	"server/utils"
+	"strings"
 	"sync"
 	"time"
 )
@@ -61,31 +61,82 @@ func main() {
 	//fmt.Println(string(msg2))
 	//json.Unmarshal(msg2, newS)
 	//fmt.Println(newS)
-
+	//===================================================================================
 	//capture屏幕信号的test
-	test := func(a int) { fmt.Println(a) }
-	fmt.Println("test" + utils.CaptureOutput(func() {
-		test(2)
-	}))
+	//test := func(a int) { fmt.Println(a) }
+	//fmt.Println("test" + utils.CaptureOutput(func() {
+	//	test(2)
+	//}))
+	//===================================================================================
+	////signal捕获crtl+c的测试
+	//task := &Task{
+	//	closed: make(chan struct{}),
+	//	ticker: time.NewTicker(time.Second * 2),
+	//}
+	//c := make(chan os.Signal)
+	//signal.Notify(c, os.Interrupt)
+	//task.wg.Add(1)
+	//go func() { defer task.wg.Done(); task.Run() }()
+	//select {
+	//case sig := <-c:
+	//	fmt.Printf("Got %s signal. Aborting...\n", sig)
+	//	task.Stop()
+	//	//case <-task.closed:
+	//	//	task.wg.Done()
+	//	//	//case <-task.ticker.C:
+	//	//	//	handle()
+	//}
+	//println("wait for stop")
+	//task.wg.Wait()
 
-	//signal捕获crtl+c的测试
-	task := &Task{
-		closed: make(chan struct{}),
-		ticker: time.NewTicker(time.Second * 2),
+	//===================================================================================
+	//redis工具测试
+	//var ctx = context.Background()
+	//client := RedisTool.NewRedis(3)
+	////err := client.RPush(ctx, "key", 1, 2, 3, 4, 5).Err()
+	////if err != nil {
+	////	panic(err)
+	////}
+	////val, err := client.LIndex(ctx, "key", -1).Result()
+	////if err != nil {
+	////	println(err)
+	////}
+	////
+	////fmt.Println(val)
+	//val, err := client.Exists(ctx, "key1").Result()
+	//fmt.Println(val, err)
+
+	//===================================================================================
+	//type ChatMsg struct {
+	//	Uid    string `json:"uid"` //消息发送者的UID
+	//	IdTime string `json:"idTime"`
+	//	Cnt    string `json:"cnt"`
+	//	SendTo string `json:"sendTo"` //消息到达者的UID,global情况储存到db1，其他储存到db2
+	//}
+	//
+	//type MsgSlice []*ChatMsg
+	//PrivateChat := make(map[string]MsgSlice)
+	//PrivateChat["1"] = MsgSlice{}
+	////PrivateChat["1"] = append(PrivateChat["1"], &ChatMsg{})
+	//fmt.Println(MsgSlice{})
+	//for i, x := range PrivateChat {
+	//	fmt.Println(i, x)
+	//	fmt.Println(len(x))
+	//}
+	//===================================================================================
+	//var msg string
+	//SpaceScan(&msg)
+	//fmt.Println(msg)
+
+	s, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	if err != nil {
+		fmt.Println(err)
 	}
-	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt)
-	task.wg.Add(1)
-	go func() { defer task.wg.Done(); task.Run() }()
-	select {
-	case sig := <-c:
-		fmt.Printf("Got %s signal. Aborting...\n", sig)
-		task.Stop()
-		//case <-task.closed:
-		//	task.wg.Done()
-		//	//case <-task.ticker.C:
-		//	//	handle()
-	}
-	println("wait for stop")
-	task.wg.Wait()
+	fmt.Println(s)
+}
+
+func SpaceScan(msg *string) {
+	reader := bufio.NewReader(os.Stdin) // 标准输入输出
+	*msg, _ = reader.ReadString('\n')   // 回车结束
+	*msg = strings.TrimSpace(*msg)      // 去除最后一个空格
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -132,13 +133,12 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 	case 4:
 		//case ：姓名等需要输入string的情况
 		client.PrintMsg(msg)
-		var modChoose string
-		_, err := fmt.Scan(&modChoose)
+		name, err := bufio.NewReader(os.Stdin).ReadString('\n')
 		if err != nil {
 			fmt.Println("Scan error!")
 			return
 		}
-		msgJson.MsgMgrObj.SendMsg(msg.Id+200, modChoose, client.conn)
+		msgJson.MsgMgrObj.SendMsg(msg.Id+200, name, client.conn)
 	case 51: //增加物品的模块
 		//case51:特殊模块：addItem需要输入两个值
 		type pair struct {
@@ -151,16 +151,34 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 		fmt.Println("物品数量")
 		fmt.Scan(&scanRes.ItemNum)
 		msgJson.MsgMgrObj.SendMsg(msg.Id+200, scanRes, client.conn)
-	//case 4294967295:
-	//	_ = client.conn.Close()
-	//聊天部分的信息处理：
+
+	//私人聊天的部分信息处理
+	case 8:
+		//先是打印出当前在线人员
+		client.PrintMsg(msg)
+		var uid int
+		_, err := fmt.Scan(&uid)
+		if err != nil {
+			fmt.Println("输入的不是数字！")
+			return
+		}
+		//进入个人聊天室逻辑：
+		//1.打印历史对话记录
+		//2.离线消息提醒（所以要在初始化的时候就加载离线消息）
+		msgJson.MsgMgrObj.SendMsg(msg.Id+200, uid, client.conn)
+	//公共聊天部分的信息处理：
 	case 9:
 		//进入聊天室界面
-		client.PrintMsg(msg)
+		//解析信息
+		var response string
+		_ = json.Unmarshal(msg.Data, &response)
 		//原子操作应该放到后端逻辑里面
 		for {
-			var msgStr string
-			_, err := fmt.Scan(&msgStr)
+			//var msgStr string
+			//_, err := fmt.Scan(&msgStr)
+			// @Modified By WangYuding 2022/5/6 14:50:00
+			// @Modified description 注意：使用fmt.Scan()/fmt.Scanf()/fmt.Scanln()不能扫描包含空格的字符串？
+			msgStr, err := bufio.NewReader(os.Stdin).ReadString('\n')
 			if err != nil {
 				fmt.Println("Scan error!")
 				return
@@ -169,10 +187,9 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 				msgJson.MsgMgrObj.SendMsg(202, 0, client.conn)
 				break
 			} else {
-				msgJson.MsgMgrObj.SendMsg(msg.Id+200, msgStr, client.conn)
+				msgJson.MsgMgrObj.SendMsg(msg.Id+200, response+"|"+msgStr, client.conn)
 			}
 		}
-	case 19:
 
 	default: //输入数字的情况
 		client.PrintMsg(msg)
@@ -184,7 +201,7 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 		}
 		// @Modified By WangYuding 2022/4/24 22:51:00
 		// @Modified description 增加本地关于退出客户端的判断
-		if msg.Id == 2 && modChoose == 6 {
+		if msg.Id == 2 && modChoose == 999 {
 			close(client.closeClientChan)
 			return
 		}

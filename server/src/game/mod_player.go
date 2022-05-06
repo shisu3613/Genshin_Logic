@@ -261,11 +261,11 @@ func (mp *ModPlayer) IsCanEnter() bool {
 }
 
 func (mp *ModPlayer) LoadData() {
-	uid, err := mp.player.Conn.GetProperty("PID")
+	PID, err := mp.player.Conn.GetProperty("PID")
 	if err != nil {
 		mp.player.SendStringMsg(800, "意外错误，请重新输入id")
 	}
-	if errors.Is(DB.GormDB.First(&mp.DBPlayer, uid.(int)).Error, gorm.ErrRecordNotFound) {
+	if errors.Is(DB.GormDB.First(&mp.DBPlayer, PID.(int)).Error, gorm.ErrRecordNotFound) {
 		mp.player.SendStringMsg(800, "当前UID不存在；请重新输入")
 	} else {
 		//conn.SetProperty("PID", player.ModPlayer.UserId)
@@ -273,7 +273,10 @@ func (mp *ModPlayer) LoadData() {
 		mp.player.SyncUid()
 		//将玩家加入世界管理器中
 		WorldMgrObj.AddPlayer(mp.player)
+		// @Modified By WangYuding 2022/5/5 21:30:00
+		// @Modified description 添加离线信息处理模块
 		mp.player.SendStringMsg(2, mp.Name+MainLogicStr)
+		mp.player.SendStringMsg(0, mp.player.GetMod(TalkMod).(*ModTalk).HandlerOfflineMsg())
 	}
 }
 
