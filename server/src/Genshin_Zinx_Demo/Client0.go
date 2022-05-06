@@ -193,15 +193,22 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 
 	default: //输入数字的情况
 		client.PrintMsg(msg)
+		// @Modified By WangYuding 2022/4/24 22:51:00
+		// @Modified description 增加本地关于退出客户端的判断
+		if msg.Id == 999 {
+			//fmt.Println(msg.Id)
+			close(client.closeClientChan)
+			return
+		}
 		var modChoose int
 		_, err := fmt.Scan(&modChoose)
 		if err != nil {
 			fmt.Println("Scan error!")
 			return
 		}
-		// @Modified By WangYuding 2022/4/24 22:51:00
-		// @Modified description 增加本地关于退出客户端的判断
+
 		if msg.Id == 2 && modChoose == 999 {
+			fmt.Println(msg.Id)
 			close(client.closeClientChan)
 			return
 		}

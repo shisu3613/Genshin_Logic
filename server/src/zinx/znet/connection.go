@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"server/zinx/utils"
 	"server/zinx/ziface"
@@ -189,17 +190,22 @@ func (c *Connection) Start() {
 
 // Stop 停止链接 结束当前链接的工作
 func (c *Connection) Stop() {
+	//defer func() {
+	//	if recover() != nil {
+	//		closed = false
+	//	}
+	//}()
 	if c.IsClosed {
 		return
 	}
+	c.IsClosed = true
 	fmt.Println("Conn Stop() ... ConnID -", c.ConnID)
 
 	//调用开发者注册的要在销毁链接之前需要执行的业务部分
 	c.TcpServer.CallOnConnStop(c)
-
-	c.IsClosed = true
 	//告知writer关闭
 	c.ExitChan <- true
+	log.Println("Close Once")
 
 	//time.Sleep(10 * time.Second)
 	//关闭链接，关闭资源

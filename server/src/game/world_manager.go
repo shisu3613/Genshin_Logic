@@ -22,12 +22,22 @@ func init() {
 func (wm *WorldManager) AddPlayer(player *Player) {
 	//将player添加到 世界管理器中
 	wm.pLock.Lock()
+	defer wm.pLock.Unlock()
 	PID, err := player.Conn.GetProperty("PID")
 	if err != nil {
 		return
 	}
+	// @Modified By WangYuding 2022/5/6 14:54:00
+	// @Modified description 完成顶号逻辑部分
+	CurPlayer, ok := wm.Players[PID.(int)]
+	if ok {
+		//当前世界服务器中有账号
+		CurPlayer.SendStringMsg(999, "另一个客户端登录,当前账户退出")
+		wm.pLock.Unlock()
+		CurPlayer.Conn.Stop()
+		wm.pLock.Lock()
+	}
 	wm.Players[PID.(int)] = player
-	wm.pLock.Unlock()
 }
 
 // RemovePlayerByPID 从玩家信息表中移除一个玩家
