@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"time"
-	"unsafe"
 )
 
 /**
@@ -70,12 +69,18 @@ func GetAllKeys(db int) []string {
 	return keys
 }
 
-func GetKeysByPattern(db int, pattern string) []string {
+func AddSetValByKey(db int, key string, val string) {
 	rdb := NewRedis(db)
-	defer rdb.Close()
-	keys, err := rdb.Keys(ctx, pattern).Result()
-	CheckError(err)
-	return keys
+	err := rdb.SAdd(ctx, key, val).Err()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func GetSetByKey(db int, key string) []string {
+	rdb := NewRedis(db)
+	es, _ := rdb.SMembers(ctx, key).Result()
+	return es
 }
 
 func GetValueByKey(db int, key string) (string, error) {
@@ -130,23 +135,4 @@ func CheckError(err error) {
 		log.Println(err)
 		panic(err)
 	}
-}
-
-// StrTobyte 将string转为[]byte
-func StrTobyte(s string) []byte {
-	x := (*[2]uintptr)(unsafe.Pointer(&s))
-	h := [3]uintptr{x[0], x[1], x[1]}
-	return *(*[]byte)(unsafe.Pointer(&h))
-}
-
-// ByteTostr 将[]byte转为string
-func ByteTostr(b []byte) string {
-	return *(*string)(unsafe.Pointer(&b))
-}
-
-// DeletSomething 该方法可以删除Redis里任意数据库 Db 的任意 Key
-func DeletSomething(key string, Db int) {
-	rdb := NewRedis(Db)
-	rdb.Del(ctx, key).Err()
-	rdb.Close()
 }

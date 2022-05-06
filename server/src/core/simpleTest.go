@@ -116,23 +116,40 @@ func main() {
 	//
 	//type MsgSlice []*ChatMsg
 	//PrivateChat := make(map[string]MsgSlice)
-	//PrivateChat["1"] = MsgSlice{}
+	//PrivateChat["1"] = nil
 	////PrivateChat["1"] = append(PrivateChat["1"], &ChatMsg{})
+	//res, ok := PrivateChat["1"]
+	//println(res, ok)
 	//fmt.Println(MsgSlice{})
-	//for i, x := range PrivateChat {
-	//	fmt.Println(i, x)
-	//	fmt.Println(len(x))
+	//for i := range PrivateChat {
+	//	fmt.Println(i)
 	//}
 	//===================================================================================
+	//scan的测试
 	//var msg string
 	//SpaceScan(&msg)
 	//fmt.Println(msg)
-
-	s, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil {
-		fmt.Println(err)
+	var msgStr string
+	for msgStr == "" {
+		msgStr, _ = bufio.NewReader(os.Stdin).ReadString('\n')
+		msgStr = strings.TrimSpace(msgStr)
 	}
-	fmt.Println(s)
+	fmt.Println(msgStr)
+
+	//var msg string
+	//fmt.Scan(&msg)
+	//fmt.Println(msg)
+
+	//var strInput string
+	//fmt.Println("Enter a string ")
+	//scanner := bufio.NewScanner(os.Stdin)
+	//
+	//if scanner.Scan() {
+	//	strInput = scanner.Text()
+	//}
+	//
+	//fmt.Println(strInput)
+
 }
 
 func SpaceScan(msg *string) {

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"server/zinx/utils"
 	"server/zinx/ziface"
@@ -205,7 +204,7 @@ func (c *Connection) Stop() {
 	c.TcpServer.CallOnConnStop(c)
 	//告知writer关闭
 	c.ExitChan <- true
-	log.Println("Close Once")
+	//log.Println("Close Once")
 
 	//time.Sleep(10 * time.Second)
 	//关闭链接，关闭资源

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"server/msgJson"
+	"server/utils"
 	"server/zinx/znet"
 	"sync"
 )
@@ -133,11 +133,7 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 	case 4:
 		//case ：姓名等需要输入string的情况
 		client.PrintMsg(msg)
-		name, err := bufio.NewReader(os.Stdin).ReadString('\n')
-		if err != nil {
-			fmt.Println("Scan error!")
-			return
-		}
+		name := utils.ScanString()
 		msgJson.MsgMgrObj.SendMsg(msg.Id+200, name, client.conn)
 	case 51: //增加物品的模块
 		//case51:特殊模块：addItem需要输入两个值
@@ -157,10 +153,13 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 		//先是打印出当前在线人员
 		client.PrintMsg(msg)
 		var uid int
-		_, err := fmt.Scan(&uid)
-		if err != nil {
-			fmt.Println("输入的不是数字！")
-			return
+		for {
+			_, err := fmt.Scan(&uid)
+			if err != nil {
+				fmt.Println("输入的不是数字！")
+			} else {
+				break
+			}
 		}
 		//进入个人聊天室逻辑：
 		//1.打印历史对话记录
@@ -178,11 +177,8 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 			//_, err := fmt.Scan(&msgStr)
 			// @Modified By WangYuding 2022/5/6 14:50:00
 			// @Modified description 注意：使用fmt.Scan()/fmt.Scanf()/fmt.Scanln()不能扫描包含空格的字符串？
-			msgStr, err := bufio.NewReader(os.Stdin).ReadString('\n')
-			if err != nil {
-				fmt.Println("Scan error!")
-				return
-			}
+			msgStr := utils.ScanString()
+			//fmt.Println(msgStr)
 			if msgStr == "exit;" {
 				msgJson.MsgMgrObj.SendMsg(202, 0, client.conn)
 				break
@@ -208,7 +204,7 @@ func (client *TcpClient) DoMsg(msg *znet.Message) {
 		}
 
 		if msg.Id == 2 && modChoose == 999 {
-			fmt.Println(msg.Id)
+			//fmt.Println(msg.Id)
 			close(client.closeClientChan)
 			return
 		}

@@ -3,7 +3,6 @@ package game
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"server/DB/RedisTool"
 	"sort"
 	"strconv"
@@ -99,12 +98,14 @@ func (mt *ModTalk) GetGlobalHistory() MsgSlice {
 func (mt *ModTalk) loadP2POffline() {
 	curUID := mt.player.GetUserID()
 	lastLogout := mt.player.GetMod(ModPlay).(*ModPlayer).UpdatedAt.Format("2006-01-02 15:04:05")
-	for _, x := range WorldMgrObj.GetAllPlayersUID() {
+	//log.Printf("当前UID%d交集数目：%d\n", curUID, len(RedisTool.GetSetByKey(personDB, strconv.Itoa(curUID))))
+	for _, x := range RedisTool.GetSetByKey(personDB, strconv.Itoa(curUID)) {
 		var key string
-		if x < curUID {
-			key = strconv.Itoa(x) + ":" + strconv.Itoa(curUID)
-		} else if x > curUID {
-			key = strconv.Itoa(x) + ":" + strconv.Itoa(curUID)
+		memId, _ := strconv.Atoi(x)
+		if memId < curUID {
+			key = x + ":" + strconv.Itoa(curUID)
+		} else if memId > curUID {
+			key = strconv.Itoa(curUID) + ":" + x
 		}
 		if key != "" && RedisTool.CheckKeyExists(personDB, key) {
 			var lastMsg ChatMsg
@@ -113,11 +114,12 @@ func (mt *ModTalk) loadP2POffline() {
 			if err != nil {
 				panic(err)
 			}
-			log.Println(lastMsg)
+			//log.Println(lastMsg)
+			//log.Println(lastLogout)
 			if lastMsg.IdTime > lastLogout {
-				mt.PrivateChat[x] = make(MsgSlice, 1)
+				mt.PrivateChat[memId] = make(MsgSlice, 1)
 			} else {
-				mt.PrivateChat[x] = nil
+				mt.PrivateChat[memId] = nil
 			}
 		}
 	}
@@ -135,10 +137,6 @@ func (mt *ModTalk) HandlerOfflineMsg() string {
 		}
 	}
 	return output
-}
-
-func (mt *ModTalk) checkOfflineMessage(lastLogout string) bool {
-	return true
 }
 
 // PrintGlobalHistory
@@ -233,4 +231,14 @@ func (mt *ModTalk) SetPrivateMessage(msg ChatMsg) bool {
 	} else {
 		return false
 	}
+}
+
+// AddInteractMem
+// @Description: 将数据保存到交互对象数据库里面
+// @receiver mt
+// @param msg
+// @return bool
+func (mt *ModTalk) AddInteractMem(key string, sendTo string) {
+	RedisTool.AddSetValByKey(personDB, key, sendTo)
+	RedisTool.AddSetValByKey(personDB, sendTo, key)
 }
