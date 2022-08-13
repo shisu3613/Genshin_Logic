@@ -16,20 +16,26 @@ type MsgHandler struct {
 	APIs map[uint32]ziface.IRouter
 
 	//负责worker取任务的消息队列
-	TaskQueue []chan ziface.IRequest
+	//TaskQueue []chan ziface.IRequest
+	WorkPool *Pool
 
 	//业务工作worker池的worker数量
-	WorkerPoolSize uint32
+	//WorkerPoolSize uint32
 }
 
 // NewMsgHandler 初始化msghandler模块
 func NewMsgHandler() *MsgHandler {
+	pool, err := NewPool(int(utils.GlobalObject.WorkerPoolSize))
+	if err != nil {
+		panic(err)
+	}
 	return &MsgHandler{
 		APIs: make(map[uint32]ziface.IRouter),
 		//从全局配置中获取
-		WorkerPoolSize: utils.GlobalObject.WorkerPoolSize,
+		//WorkerPoolSize: utils.GlobalObject.WorkerPoolSize,
 		//根据当前池子的大小初始化消息队列
-		TaskQueue: make([]chan ziface.IRequest, utils.GlobalObject.WorkerPoolSize),
+		WorkPool: pool,
+		//TaskQueue: make([]chan ziface.IRequest, utils.GlobalObject.WorkerPoolSize),
 	}
 }
 
@@ -59,14 +65,14 @@ func (mh *MsgHandler) AddRouter(msgID uint32, router ziface.IRouter) {
 // StartWorkerPool 启动一个worker工作池子,开启工作池子的动作智能发生一次，一个zinx框架只能有一个worker池子，对外暴露的方法
 func (mh *MsgHandler) StartWorkerPool() {
 	//根据workPoolSize分别开启worker
-	var i uint32
-	for i = 0; i < mh.WorkerPoolSize; i++ {
-		//一个worker被启动
-		//1.开辟当前worker对应的消息队列，开辟空间,消息队列的最大值在配置文件中配置
-		mh.TaskQueue[i] = make(chan ziface.IRequest, utils.GlobalObject.MaxTaskQueueLen)
-		//2.启动当前的worker，阻塞等待消息从channel中传过来
-		go mh.startOneWorker(i, mh.TaskQueue[i])
-	}
+	//var i uint32
+	//for i = 0; i < mh.WorkerPoolSize; i++ {
+	//	//一个worker被启动
+	//	//1.开辟当前worker对应的消息队列，开辟空间,消息队列的最大值在配置文件中配置
+	//	mh.TaskQueue[i] = make(chan ziface.IRequest, utils.GlobalObject.MaxTaskQueueLen)
+	//	//2.启动当前的worker，阻塞等待消息从channel中传过来
+	//	go mh.startOneWorker(i, mh.TaskQueue[i])
+	//}
 
 }
 
@@ -86,11 +92,18 @@ func (mh *MsgHandler) startOneWorker(workID uint32, taskQueue chan ziface.IReque
 
 // SendMsgToTaskQueue 将消息交给TaskQueue来由worker进行处理
 func (mh *MsgHandler) SendMsgToTaskQueue(request ziface.IRequest) {
-	//负载均衡算法，可以改进，目前使用单体的轮询
 	//根据客户端建立的conn的ID进行分配
-	workerID := request.GetConnection().GetConnID() % mh.WorkerPoolSize
-	fmt.Println("Add ConnID=", request.GetConnection().GetConnID(), "request MsgID =", request.GetMsgID(), "to WorkerID =", workerID)
 
-	//将消息发送给对应的worker的taskQueue
-	mh.TaskQueue[workerID] <- request
+	err := mh.WorkPool.Submit(func() {
+		mh.DoMsgHandler(request)
+		fmt.Println("Add ConnID=", request.GetConnection().GetConnID(), "request MsgID =", request.GetMsgID()) //, "to WorkerID =", workerID)
+	})
+	if err != nil {
+		return
+	}
+	//workerID := request.GetConnection().GetConnID() %
+	//	fmt.Println("Add ConnID=", request.GetConnection().GetConnID(), "request MsgID =", request.GetMsgID(), "to WorkerID =", workerID)
+	//
+	////将消息发送给对应的worker的taskQueue
+	//mh.TaskQueue[workerID] <- request
 }

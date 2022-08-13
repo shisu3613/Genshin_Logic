@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"gorm.io/gorm"
+	"log"
 	DB "server/DB/GORM"
 	"server/csvs"
+	"server/utils"
 )
 
 type ItemInfo struct {
@@ -212,10 +214,10 @@ func (mb *ModBag) UseCookBook(itemId int, num int64) {
 // @receiver mb
 func (mb *ModBag) LoadData() {
 	pid, err := mb.player.Conn.GetProperty("PID")
-	uid := pid.(int) + 100000000
 	if err != nil {
 		mb.player.SendStringMsg(800, "意外错误，请重新输入id")
 	}
+	uid := utils.PidToUid(pid.(int))
 	var test DBModBag
 	if errors.Is(DB.GormDB.First(&test, "user_id", uid).Error, gorm.ErrRecordNotFound) {
 		//fmt.Println(DB.GormDB.Find(&test, "user_id", uid).Error)
@@ -242,10 +244,20 @@ func (mb *ModBag) LoadData() {
 func (mb *ModBag) SaveData() {
 	uid := mb.player.GetUserID()
 	content, _ := json.Marshal(mb)
-	var test DBModBag
-	DB.GormDB.Find(&test, "user_id", uid)
-	test.JsonData = content
-	DB.GormDB.Save(test)
+	var storeData DBModBag
+	tx := DB.GormDB.Begin()
+	if err := tx.Find(&storeData, "user_id", uid).Error; err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return
+	}
+	storeData.JsonData = content
+	if err := tx.Save(storeData).Error; err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return
+	}
+	tx.Commit()
 }
 
 func (mb *ModBag) init(player *Player) {

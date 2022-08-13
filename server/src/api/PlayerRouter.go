@@ -57,7 +57,7 @@ func (pr *PlayerRouter) Handler(request ziface.IRequest) {
 				outputStr += strconv.Itoa(x) + ";"
 			}
 		}
-		outputStr += "\n以下是曾经和您有过通话记录的UID:\n"
+		outputStr += "\n以下是您此次登陆前和您有过通话记录的UID:\n"
 		// @Modified By WangYuding 2022/5/5 22:33:00
 		// @Modified description 仿照原神，添加有过通话记录的UID
 		for k := range player.GetMod(game.TalkMod).(*game.ModTalk).PrivateChat {

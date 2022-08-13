@@ -8,6 +8,7 @@ import (
 	"server/api"
 	"server/csvs"
 	"server/game"
+	"server/utils"
 	"server/zinx/ziface"
 	"server/zinx/znet"
 	"sync"
@@ -43,7 +44,7 @@ func (lc *LoadOrCreatRouter) Handler(request ziface.IRequest) {
 		//player.SendStringMsg(2, player.ModPlayer.Name+",欢迎来到提瓦特大陆,请选择功能：1.基础信息 2.背包 3.up池抽卡模拟 4.up池抽卡（消耗相遇之缘） 5.地图")
 	default:
 		//player := game.InitClientPlayer(conn)
-		conn.SetProperty("PID", msgChoice-100000000)
+		conn.SetProperty("PID", utils.UidToPid(msgChoice))
 		//if DB.GormDB.First(&player.ModPlayer.DBPlayer, msgChoice-100000000).RecordNotFound() {
 		//	player.SendStringMsg(800, "当前UID不存在；请重新输入")
 		//} else {

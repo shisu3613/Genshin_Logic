@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"gorm.io/gorm"
+	"log"
 	DB "server/DB/GORM"
 	"server/csvs"
+	"server/utils"
 )
 
 type Icon struct {
@@ -57,18 +59,28 @@ func (self *ModIcon) SaveData() {
 	//}
 	uid := self.player.GetUserID()
 	content, _ := json.Marshal(self)
-	var test DBIcon
-	DB.GormDB.Find(&test, "user_id", uid)
-	test.IconMapData = content
-	DB.GormDB.Save(test)
+	var storeData DBIcon
+	tx := DB.GormDB.Begin()
+	if err := tx.Find(&storeData, "user_id", uid).Error; err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return
+	}
+	storeData.IconMapData = content
+	if err := tx.Save(storeData).Error; err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return
+	}
+	tx.Commit()
 }
 
 func (self *ModIcon) LoadData() {
 	pid, err := self.player.Conn.GetProperty("PID")
-	uid := pid.(int) + 100000000
 	if err != nil {
 		self.player.SendStringMsg(800, "意外错误，请重新输入id")
 	}
+	uid := utils.PidToUid(pid.(int))
 	var test DBIcon
 
 	if errors.Is(DB.GormDB.First(&test, "user_id", uid).Error, gorm.ErrRecordNotFound) {

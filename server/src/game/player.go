@@ -7,6 +7,7 @@ import (
 	DB "server/DB/GORM"
 	"server/csvs"
 	"server/msgJson"
+	"server/utils"
 	"server/zinx/ziface"
 )
 
@@ -150,9 +151,9 @@ func (pr *Player) CreateRoleInDB() {
 	DB.GormDB.Create(&pr.GetMod(ModPlay).(*ModPlayer).DBPlayer)
 	//fmt.Println(player.ModPlayer.DBPlayer.ID)
 	//告知客户端pID,同步已经生成的玩家ID给客户端
-	DB.GormDB.Model(&pr.GetMod(ModPlay).(*ModPlayer).DBPlayer).Update("user_id", pr.GetMod(ModPlay).(*ModPlayer).DBPlayer.ID+100000000)
+	DB.GormDB.Model(&pr.GetMod(ModPlay).(*ModPlayer).DBPlayer).Update("user_id", utils.PidToUid(int(pr.GetMod(ModPlay).(*ModPlayer).DBPlayer.ID)))
 	pr.SyncUid()
-	pr.Conn.SetProperty("PID", pr.GetMod(ModPlay).(*ModPlayer).UserId)
+	pr.Conn.SetProperty("PID", pr.GetMod(ModPlay).(*ModPlayer).DBPlayer.ID)
 
 	//将玩家加入世界管理器中
 	pr.LoadElse()

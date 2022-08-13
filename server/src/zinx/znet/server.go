@@ -62,7 +62,7 @@ type Server struct {
 // Start 启动服务器
 func (s *Server) Start() {
 	//开启消息队列和worker工作池
-	s.MsgHandler.StartWorkerPool()
+	//s.MsgHandler.StartWorkerPool()
 
 	fmt.Printf("Server Name : %s,listener at IP : %s, Port:%d is starting\n",
 		utils.GlobalObject.Name,

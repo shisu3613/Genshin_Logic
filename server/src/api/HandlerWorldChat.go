@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"server/game"
+	"server/utils"
 	"server/zinx/ziface"
 	"server/zinx/znet"
 	"strconv"
@@ -73,7 +74,7 @@ func (hw *HandlerWorldChat) Handler(request ziface.IRequest) {
 		}
 		//log.Println(sendId)
 		player.GetMod(game.TalkMod).(*game.ModTalk).AddInteractMem(newMsg.Uid, newMsg.SendTo)
-		if anotherPlayer := game.WorldMgrObj.GetPlayerByPID(sendId - 100000000); anotherPlayer != nil {
+		if anotherPlayer := game.WorldMgrObj.GetPlayerByPID(utils.UidToPid(sendId)); anotherPlayer != nil {
 			if anotherPlayer.GetMod(game.TalkMod).(*game.ModTalk).CheckFlag(int32(uid)) {
 				anotherPlayer.SendStringMsg(0, "时间："+newMsg.IdTime+","+newMsg.Uid+":"+newMsg.Cnt)
 			} else {
